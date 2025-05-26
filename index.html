@@ -1,20 +1,51 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="UTF-8">
-    <script>
+<head>
+  <meta charset="UTF-8">
+  <title>Трата баллов</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      flex-direction: column;
+    }
+    button {
+      padding: 12px 24px;
+      font-size: 16px;
+      border: none;
+      background-color: #4CAF50;
+      color: white;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    iframe {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <h2>Подтвердите трату баллов</h2>
+  <button onclick="spendPoints()">Подтвердить</button>
+  <iframe id="hiddenFrame"></iframe>
+
+  <script>
+    function spendPoints() {
       const params = new URLSearchParams(window.location.search);
       const user = params.get("user");
       const item = params.get("item");
       const points = params.get("points");
 
-      const redirectUrl = `https://script.google.com/macros/s/AKfycbxHS2LQkIvHRnWEeF7NWxx8LP_4O5sBLhUZrBzPOjC8k4jANZKoFTUwnJjNcywHg3gpEw/exec?user=${encodeURIComponent(user)}&item=${encodeURIComponent(item)}&points=${encodeURIComponent(points)}`;
+      const url = `https://script.google.com/macros/s/AKfycbxHS2LQkIvHRnWEeF7NWxx8LP_4O5sBLhUZrBzPOjC8k4jANZKoFTUwnJjNcywHg3gpEw/exec?user=${encodeURIComponent(user)}&item=${encodeURIComponent(item)}&points=${encodeURIComponent(points)}`;
 
-      window.location.replace(redirectUrl);
-    </script>
-    <title>Перенаправление...</title>
-  </head>
-  <body>
-    Перенаправление...
-  </body>
+      // Загружаем скрипт в iframe (не перенаправляя пользователя)
+      document.getElementById("hiddenFrame").src = url;
+
+      // Показываем сообщение
+      document.body.innerHTML += `<p>Баллы списаны. Вы можете закрыть окно.</p>`;
+    }
+  </script>
+</body>
 </html>
