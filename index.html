@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <script>
+      const params = new URLSearchParams(window.location.search);
+      const user = params.get("user");
+      const item = params.get("item");
+      const points = params.get("points");
+
+      const redirectUrl = `https://script.google.com/macros/s/AKfycbxHS2LQkIvHRnWEeF7NWxx8LP_4O5sBLhUZrBzPOjC8k4jANZKoFTUwnJjNcywHg3gpEw/exec?user=${encodeURIComponent(user)}&item=${encodeURIComponent(item)}&points=${encodeURIComponent(points)}`;
+
+      window.location.replace(redirectUrl);
+    </script>
+    <title>Перенаправление...</title>
+  </head>
+  <body>
+    Перенаправление...
+  </body>
+</html>
