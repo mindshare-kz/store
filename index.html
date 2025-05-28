@@ -26,18 +26,10 @@
     const SHEET_ID = '1hKaPZSx2KSeQgtjt6n1GDptxBnfSB701L-zximqmc44';
     const BALANCE_URL = `https://opensheet.elk.sh/${SHEET_ID}/Баллы`;
     const PRODUCTS_URL = `https://opensheet.elk.sh/${SHEET_ID}/Призы`;
-    const LOG_URL = 'https://script.google.com/macros/s/AKfycbzhRIByHTWbmDJhSUblTJmoP5jk8pnaJID6Y_KMAfgIyiKxHFCuwYxs0tKej3qfUeztTg/exec';
+    const LOG_URL = 'https://script.google.com/macros/s/AKfycbw7UwAzXuwwIh4DFdfcsXGsQQTSQRmbWa62k7HS1uP4QKbizbqJyjNhxV6Ok0AknF6S2A/exec';
 
     let balances = [];
     let products = [];
-
-    function saveSelectedUser(login) {
-      localStorage.setItem('selectedUser', login);
-    }
-
-    function getSelectedUser() {
-      return localStorage.getItem('selectedUser');
-    }
 
     async function fetchData() {
       const [balanceData, productData] = await Promise.all([
@@ -62,16 +54,13 @@
         select.appendChild(opt);
       });
 
-      const savedLogin = getSelectedUser();
-      if (savedLogin && balances.find(u => u.login === savedLogin)) {
-        select.value = savedLogin;
-      }
+      const savedLogin = localStorage.getItem('selectedLogin');
+      if (savedLogin) select.value = savedLogin;
 
       select.addEventListener('change', () => {
-        saveSelectedUser(select.value);
+        localStorage.setItem('selectedLogin', select.value);
         render();
       });
-
       render();
     }
 
@@ -100,7 +89,7 @@
         .then(() => {
           const userBalance = balances.find(b => b.login === user);
           if (userBalance) {
-            userBalance.points = Math.max(0, userBalance.points - points);
+            userBalance.points -= points;
           }
           render();
           alert('Покупка оформлена!');
