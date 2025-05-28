@@ -31,6 +31,14 @@
     let balances = [];
     let products = [];
 
+    function saveSelectedUser(login) {
+      localStorage.setItem('selectedUser', login);
+    }
+
+    function getSelectedUser() {
+      return localStorage.getItem('selectedUser');
+    }
+
     async function fetchData() {
       const [balanceData, productData] = await Promise.all([
         fetch(BALANCE_URL).then(r => r.json()),
@@ -53,7 +61,17 @@
         opt.textContent = u.login;
         select.appendChild(opt);
       });
-      select.addEventListener('change', render);
+
+      const savedLogin = getSelectedUser();
+      if (savedLogin && balances.find(u => u.login === savedLogin)) {
+        select.value = savedLogin;
+      }
+
+      select.addEventListener('change', () => {
+        saveSelectedUser(select.value);
+        render();
+      });
+
       render();
     }
 
@@ -82,7 +100,7 @@
         .then(() => {
           const userBalance = balances.find(b => b.login === user);
           if (userBalance) {
-            userBalance.points = userBalance.points - points;
+            userBalance.points = Math.max(0, userBalance.points - points);
           }
           render();
           alert('Покупка оформлена!');
