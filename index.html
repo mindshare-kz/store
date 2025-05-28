@@ -13,7 +13,7 @@
     .card img { width: 100%; height: auto; }
     .card h3 { margin: 10px 0 5px; font-size: 18px; }
     .card p { margin: 0 0 10px; font-size: 16px; }
-    .btn { background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 16px; }
+    .btn { background: #9a3eff; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 16px; }
     .btn:disabled { background: #ccc; cursor: not-allowed; }
   </style>
 </head>
@@ -78,7 +78,7 @@
           <img src="${p.image}" alt="${p.name}" />
           <h3>${p.name}</h3>
           <p>${p.points} баллов</p>
-          <button class="btn" ${balance < p.points ? 'disabled' : ''} onclick="buy('${login}', '${p.name}', ${p.points})">Купить</button>
+          <button class="btn" ${balance < p.points ? 'disabled' : ''} onclick="buy('${login}', '${p.name}', ${p.points})">Получить</button>
         `;
         grid.appendChild(card);
       });
@@ -94,7 +94,7 @@
           render();
           alert('Приз можно забрать у команды Research. Поздравляем! ✨');
         })
-        .catch(() => alert('Ошибка при покупке'));
+        .catch(() => alert('Ошибка. Повторите позже.'));
     }
 
     fetchData();
