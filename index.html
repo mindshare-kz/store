@@ -36,7 +36,11 @@
         fetch(BALANCE_URL).then(r => r.json()),
         fetch(PRODUCTS_URL).then(r => r.json())
       ]);
-      balances = balanceData;
+      balances = balanceData.map(entry => ({
+  login: entry.login?.trim(),
+  points: parseInt(entry.points?.trim() || '0')
+}));
+
       products = productData;
       populateUsers();
     }
