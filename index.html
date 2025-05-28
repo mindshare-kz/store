@@ -24,9 +24,9 @@
 
   <script>
     const SHEET_ID = '1hKaPZSx2KSeQgtjt6n1GDptxBnfSB701L-zximqmc44';
-    const BALANCE_URL = `https://opensheet.elk.sh/${SHEET_ID}/Баллы`;
+    const BALANCE_URL = 'https://script.google.com/macros/s/AKfycbw7UwAzXuwwIh4DFdfcsXGsQQTSQRmbWa62k7HS1uP4QKbizbqJyjNhxV6Ok0AknF6S2A/exec';
     const PRODUCTS_URL = `https://opensheet.elk.sh/${SHEET_ID}/Призы`;
-    const LOG_URL = 'https://script.google.com/macros/s/AKfycbw7UwAzXuwwIh4DFdfcsXGsQQTSQRmbWa62k7HS1uP4QKbizbqJyjNhxV6Ok0AknF6S2A/exec';
+    const LOG_URL = BALANCE_URL;
 
     let balances = [];
     let products = [];
@@ -36,10 +36,12 @@
         fetch(BALANCE_URL).then(r => r.json()),
         fetch(PRODUCTS_URL).then(r => r.json())
       ]);
+
       balances = balanceData.map(b => ({
-        login: b.login.trim(),
-        points: parseInt(b.points?.trim?.() || b["        points"]?.trim?.() || '0')
+        login: b.login?.trim?.() || '',
+        points: parseInt(b.points?.toString().trim?.() || '0')
       }));
+
       products = productData;
       populateUsers();
     }
@@ -61,13 +63,17 @@
         localStorage.setItem('selectedLogin', select.value);
         render();
       });
+
       render();
     }
 
     function render() {
       const login = document.getElementById('user').value;
-      const balance = parseInt(balances.find(b => b.login === login)?.points || 0);
+      const userBalance = balances.find(b => b.login === login);
+      const balance = userBalance?.points || 0;
+
       document.getElementById('balance').textContent = `Доступно баллов: ${balance}`;
+
       const grid = document.getElementById('products');
       grid.innerHTML = '';
 
@@ -87,10 +93,14 @@
     function buy(user, item, points) {
       fetch(`${LOG_URL}?user=${encodeURIComponent(user)}&item=${encodeURIComponent(item)}&points=${points}`)
         .then(() => {
-          const userBalance = balances.find(b => b.login === user);
-          if (userBalance) {
-            userBalance.points -= points;
-          }
+          // Обновляем баллы с сервера
+          return fetch(BALANCE_URL).then(r => r.json());
+        })
+        .then(newBalances => {
+          balances = newBalances.map(b => ({
+            login: b.login?.trim?.() || '',
+            points: parseInt(b.points?.toString().trim?.() || '0')
+          }));
           render();
           alert('Покупка оформлена!');
         })
