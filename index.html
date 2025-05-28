@@ -1,51 +1,87 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <title>Трата баллов</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Магазин призов</title>
   <style>
-    body {
-      font-family: sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      flex-direction: column;
-    }
-    button {
-      padding: 12px 24px;
-      font-size: 16px;
-      border: none;
-      background-color: #9A3EFF;
-      color: white;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-    iframe {
-      display: none;
-    }
+    body { font-family: sans-serif; text-align: center; background: #f9f9f9; }
+    .user-select { margin: 20px auto; font-size: 18px; }
+    .points { font-size: 22px; margin-bottom: 20px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; padding: 20px; }
+    .card { background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); padding: 16px; }
+    .card img { width: 100%; height: auto; }
+    .card h3 { margin: 10px 0 5px; font-size: 18px; }
+    .card p { margin: 0 0 10px; font-size: 16px; }
+    .btn { background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 16px; }
+    .btn:disabled { background: #ccc; cursor: not-allowed; }
   </style>
 </head>
 <body>
-  <h2>Подтвердите трату баллов</h2>
-  <button onclick="spendPoints()">Подтвердить</button>
-  <iframe id="hiddenFrame"></iframe>
+  <select id="user" class="user-select"></select>
+  <div class="points" id="balance"></div>
+  <div class="grid" id="products"></div>
 
   <script>
-    function spendPoints() {
-      const params = new URLSearchParams(window.location.search);
-      const user = params.get("user");
-      const item = params.get("item");
-      const points = params.get("points");
+    const SHEET_ID = '1hKaPZSx2KSeQgtjt6n1GDptxBnfSB701L-zximqmc44';
+    const BALANCE_URL = `https://opensheet.elk.sh/${SHEET_ID}/Баллы`;
+    const PRODUCTS_URL = `https://opensheet.elk.sh/${SHEET_ID}/Призы`;
+    const LOG_URL = 'https://script.google.com/macros/s/AKfycbzhRIByHTWbmDJhSUblTJmoP5jk8pnaJID6Y_KMAfgIyiKxHFCuwYxs0tKej3qfUeztTg/exec';
 
-      const url = `https://script.google.com/macros/s/AKfycbzhRIByHTWbmDJhSUblTJmoP5jk8pnaJID6Y_KMAfgIyiKxHFCuwYxs0tKej3qfUeztTg/exec?user=${encodeURIComponent(user)}&item=${encodeURIComponent(item)}&points=${encodeURIComponent(points)}`;
+    let balances = [];
+    let products = [];
 
-      // Загружаем скрипт в iframe (не перенаправляя пользователя)
-      document.getElementById("hiddenFrame").src = url;
-
-      // Показываем сообщение
-      document.body.innerHTML += `<p>Баллы списаны. Вы можете закрыть окно.</p>`;
+    async function fetchData() {
+      const [balanceData, productData] = await Promise.all([
+        fetch(BALANCE_URL).then(r => r.json()),
+        fetch(PRODUCTS_URL).then(r => r.json())
+      ]);
+      balances = balanceData;
+      products = productData;
+      populateUsers();
     }
+
+    function populateUsers() {
+      const select = document.getElementById('user');
+      balances.forEach(u => {
+        const opt = document.createElement('option');
+        opt.value = u.login;
+        opt.textContent = u.login;
+        select.appendChild(opt);
+      });
+      select.addEventListener('change', render);
+      render();
+    }
+
+    function render() {
+      const login = document.getElementById('user').value;
+      const balance = parseInt(balances.find(b => b.login === login)?.points || '0');
+      document.getElementById('balance').textContent = `Доступно баллов: ${balance}`;
+      const grid = document.getElementById('products');
+      grid.innerHTML = '';
+
+      products.forEach(p => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `
+          <img src="${p.image}" alt="${p.name}" />
+          <h3>${p.name}</h3>
+          <p>${p.points} баллов</p>
+          <button class="btn" ${balance < p.points ? 'disabled' : ''} onclick="buy('${login}', '${p.name}', ${p.points})">Купить</button>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function buy(user, item, points) {
+      fetch(`${LOG_URL}?user=${encodeURIComponent(user)}&item=${encodeURIComponent(item)}&points=${points}`)
+        .then(() => {
+          alert('Покупка оформлена!');
+          location.reload();
+        });
+    }
+
+    fetchData();
   </script>
 </body>
 </html>
