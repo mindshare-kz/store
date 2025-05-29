@@ -17,7 +17,7 @@
       content: '';
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(255, 255, 255, 0.35);
+      background: rgba(255, 255, 255, 0.25);
       z-index: 0;
     }
     main {
@@ -25,7 +25,7 @@
       z-index: 1;
       padding-top: 40px; /* ← вот добавленный отступ */
     }
-    .user-select { background: rgba(255, 255, 255, 0.55); border-radius: 60px; margin: 15px auto; font-size: 23px; height: 45px; }
+    .user-select { background: rgba(255, 255, 255, 0.55); border-radius: 60px; margin: 20px auto; font-size: 25px; }
     .points { font-size: 22px; margin-bottom: 20px; }
     .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; padding: 20px; }
     .card { background: white; border-radius: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); padding: 16px; }
@@ -45,8 +45,8 @@
 
   <script>
     const SHEET_ID = '1hKaPZSx2KSeQgtjt6n1GDptxBnfSB701L-zximqmc44';
-    const BALANCE_URL = https://opensheet.elk.sh/${SHEET_ID}/Баллы;
-    const PRODUCTS_URL = https://opensheet.elk.sh/${SHEET_ID}/Призы;
+    const BALANCE_URL = `https://opensheet.elk.sh/${SHEET_ID}/Баллы`;
+    const PRODUCTS_URL = `https://opensheet.elk.sh/${SHEET_ID}/Призы`;
     const LOG_URL = 'https://script.google.com/macros/s/AKfycbw7UwAzXuwwIh4DFdfcsXGsQQTSQRmbWa62k7HS1uP4QKbizbqJyjNhxV6Ok0AknF6S2A/exec';
 
     let balances = [];
@@ -88,35 +88,36 @@
     function render() {
       const login = document.getElementById('user').value;
       const balance = parseInt(balances.find(b => b.login === login)?.points || 0);
-      document.getElementById('balance').textContent = Доступно баллов: ${balance};
+      document.getElementById('balance').textContent = `Доступно баллов: ${balance}`;
       const grid = document.getElementById('products');
       grid.innerHTML = '';
 
       products.forEach(p => {
         const card = document.createElement('div');
         card.className = 'card';
-        card.innerHTML = 
+        card.innerHTML = `
           <img src="${p.image}" alt="${p.name}" />
           <h3>${p.name}</h3>
           <p>${p.points} баллов</p>
           <button class="btn" ${balance < p.points ? 'disabled' : ''} onclick="buy('${login}', '${p.name}', ${p.points})">Получить</button>
-        ;
+        `;
         grid.appendChild(card);
       });
     }
 
     function buy(user, item, points) {
-  alert('Приз можно забрать у команды Research. Поздравляем! ✨');
+      fetch(`${LOG_URL}?user=${encodeURIComponent(user)}&item=${encodeURIComponent(item)}&points=${points}`)
+        .then(() => {
+          const userBalance = balances.find(b => b.login === user);
+          if (userBalance) {
+            userBalance.points -= points;
+          }
+          render();
+          alert('Приз можно забрать у команды Research. Поздравляем! ✨');
+        })
+        .catch(() => alert('Ошибка. Повторите позже.'));
+    }
 
-  const userBalance = balances.find(b => b.login === user);
-  if (userBalance) {
-    userBalance.points -= points;
-  }
-  render();
-
-  fetch(${LOG_URL}?user=${encodeURIComponent(user)}&item=${encodeURIComponent(item)}&points=${points})
-    .catch(() => alert('Ошибка. Повторите позже.'));
-}
     fetchData();
   </script>
 </body>
