@@ -23,17 +23,57 @@
     main {
       position: relative;
       z-index: 1;
-      padding-top: 40px; /* ← вот добавленный отступ */
+      padding-top: 40px; /* ← добавленный отступ */
     }
-    .user-select { background: rgba(255, 255, 255, 0.55); border-radius: 60px; margin: 15px auto; font-size: 23px; height: 40px; }
-    .points { font-size: 22px; margin-bottom: 20px; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; padding: 20px; }
-    .card { background: white; border-radius: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); padding: 16px; }
-    .card img { width: 100%; height: auto; }
-    .card h3 { margin: 10px 0 5px; font-size: 18px; }
-    .card p { margin: 0 0 10px; font-size: 16px; }
-    .btn { background: #9a3eff; color: white; border: none; padding: 10px 20px; border-radius: 20px; cursor: pointer; font-size: 16px; }
-    .btn:disabled { background: #ccc; cursor: not-allowed; }
+    .user-select {
+      background: rgba(255, 255, 255, 0.55);
+      border-radius: 60px;
+      margin: 15px auto;
+      font-size: 23px;
+      height: 45px;
+    }
+    .points {
+      font-size: 22px;
+      margin-bottom: 20px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      padding: 20px;
+    }
+    .card {
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      padding: 16px;
+    }
+    .card img {
+      width: 100%;
+      height: auto;
+    }
+    .card h3 {
+      margin: 10px 0 5px;
+      font-size: 18px;
+    }
+    .card p {
+      margin: 0 0 10px;
+      font-size: 16px;
+    }
+    .btn {
+      background: #9a3eff;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background-color 0.3s ease;
+    }
+    .btn:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
   </style>
 </head>
 <body>
@@ -99,24 +139,37 @@
           <img src="${p.image}" alt="${p.name}" />
           <h3>${p.name}</h3>
           <p>${p.points} баллов</p>
-          <button class="btn" ${balance < p.points ? 'disabled' : ''} onclick="buy('${login}', '${p.name}', ${p.points})">Получить</button>
+          <button class="btn" ${balance < p.points ? 'disabled' : ''} onclick="buy('${login}', '${p.name}', ${p.points}, event)">Получить</button>
         `;
         grid.appendChild(card);
       });
     }
 
-    function buy(user, item, points) {
-  alert('Приз можно забрать у команды Research. Поздравляем! ✨');
+    function buy(user, item, points, event) {
+      const button = event.target;
+      const originalColor = button.style.backgroundColor;
 
-  const userBalance = balances.find(b => b.login === user);
-  if (userBalance) {
-    userBalance.points -= points;
-  }
-  render();
+      // Меняем цвет кнопки сразу
+      button.style.backgroundColor = '#7820d8';
 
-  fetch(`${LOG_URL}?user=${encodeURIComponent(user)}&item=${encodeURIComponent(item)}&points=${points}`)
-    .catch(() => alert('Ошибка. Повторите позже.'));
-}
+      // Показываем сообщение сразу
+      alert('Приз можно забрать у команды Research. Поздравляем! ✨');
+
+      // Обновляем баланс сразу
+      const userBalance = balances.find(b => b.login === user);
+      if (userBalance) {
+        userBalance.points -= points;
+      }
+      render();
+
+      // Логируем покупку в фоне
+      fetch(`${LOG_URL}?user=${encodeURIComponent(user)}&item=${encodeURIComponent(item)}&points=${points}`)
+        .catch(() => {
+          alert('Ошибка. Повторите позже.');
+          button.style.backgroundColor = originalColor;
+        });
+    }
+
     fetchData();
   </script>
 </body>
