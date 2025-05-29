@@ -106,9 +106,13 @@
     }
 
     function buy(user, item, points) {
-  alert('Приз можно забрать у команды Research. Поздравляем! ✨');
+  const confirmMsg = 'Подождите, идёт обработка...';
+  const successMsg = 'Приз можно забрать у команды Research. Поздравляем! ✨';
+  const errorMsg = 'Ошибка. Повторите позже.';
 
-  // Запуск запроса в фоне, без ожидания
+  // Мгновенно показываем сообщение об ожидании
+  alert(confirmMsg);
+
   fetch(`${LOG_URL}?user=${encodeURIComponent(user)}&item=${encodeURIComponent(item)}&points=${points}`)
     .then(() => {
       const userBalance = balances.find(b => b.login === user);
@@ -116,8 +120,9 @@
         userBalance.points -= points;
       }
       render();
+      alert(successMsg); // Показываем подтверждение после записи
     })
-    .catch(() => alert('Ошибка. Повторите позже.'));
+    .catch(() => alert(errorMsg));
 }
     fetchData();
   </script>
