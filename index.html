@@ -106,18 +106,19 @@
     }
 
     function buy(user, item, points) {
-      fetch(`${LOG_URL}?user=${encodeURIComponent(user)}&item=${encodeURIComponent(item)}&points=${points}`)
-        .then(() => {
-          const userBalance = balances.find(b => b.login === user);
-          if (userBalance) {
-            userBalance.points -= points;
-          }
-          render();
-          alert('Приз можно забрать у команды Research. Поздравляем! ✨');
-        })
-        .catch(() => alert('Ошибка. Повторите позже.'));
-    }
+  alert('Приз можно забрать у команды Research. Поздравляем! ✨');
 
+  // Запуск запроса в фоне, без ожидания
+  fetch(`${LOG_URL}?user=${encodeURIComponent(user)}&item=${encodeURIComponent(item)}&points=${points}`)
+    .then(() => {
+      const userBalance = balances.find(b => b.login === user);
+      if (userBalance) {
+        userBalance.points -= points;
+      }
+      render();
+    })
+    .catch(() => alert('Ошибка. Повторите позже.'));
+}
     fetchData();
   </script>
 </body>
