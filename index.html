@@ -108,16 +108,14 @@
     function buy(user, item, points) {
   alert('Приз можно забрать у команды Research. Поздравляем! ✨');
 
-  // Запуск запроса в фоне, без ожидания
+  const userBalance = balances.find(b => b.login === user);
+  if (userBalance) {
+    userBalance.points -= points;
+  }
+  render();
+
   fetch(`${LOG_URL}?user=${encodeURIComponent(user)}&item=${encodeURIComponent(item)}&points=${points}`)
-    .then(() => {
-      const userBalance = balances.find(b => b.login === user);
-      if (userBalance) {
-        userBalance.points -= points;
-      }
-      render();
-    })
-    .catch(() => alert('Ошибка при записи. Обратитесь к команде.'));
+    .catch(() => alert('Ошибка. Повторите позже.'));
 }
     fetchData();
   </script>
