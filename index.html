@@ -45,13 +45,24 @@
       padding: 20px;
     }
     .card {
-      background: white;
-      border-radius: 20px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      padding: 16px;
-      max-width: 300px;
-      margin: 0 auto;
-    }
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  padding: 16px;
+  max-width: 300px;
+  margin: 0 auto;
+  height: 100%; /* будет автоматически растягиваться в гриде */
+}
+
+.card-content {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
     .card img {
       width: 100%;
       height: auto;
@@ -146,12 +157,16 @@
 
         const disabled = balance < p.points ? 'disabled' : '';
 
-        card.innerHTML = `
-          <img src="${p.image}" alt="${p.name}" />
-          <h3>${p.name}</h3>
-          <p>${p.points} баллов</p>
-          <button class="btn" ${disabled} onclick="buy('${login}', '${p.name}', ${p.points}, this)">Получить</button>
-        `;
+       card.innerHTML = `
+  <div class="card-content">
+    <img src="${p.image}" alt="${p.name}" />
+    <div>
+      <h3>${p.name}</h3>
+      <p>${p.points} баллов</p>
+    </div>
+    <button class="btn" ${disabled} onclick="buy('${login}', '${p.name}', ${p.points}, this)">Получить</button>
+  </div>
+`;
         grid.appendChild(card);
       });
     }
