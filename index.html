@@ -12,6 +12,9 @@
       padding: 0;
       background: url('https://wallpaperaccess.com/full/2641047.gif') center center / cover no-repeat fixed;
       position: relative;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
     }
     body::before {
       content: '';
@@ -24,6 +27,7 @@
       position: relative;
       z-index: 1;
       padding-top: 34px;
+      flex: 1;
     }
     .user-select {
       background: rgba(255, 255, 255, 0.55);
@@ -89,16 +93,12 @@
       cursor: not-allowed;
     }
     footer {
-      position: fixed;
-      bottom: 10px;
-      left: 0;
-      right: 0;
       text-align: center;
       font-size: 14px;
       color: #333;
       opacity: 0.7;
-      z-index: 2;
-      pointer-events: none;
+      padding: 20px 10px;
+      z-index: 1;
     }
   </style>
 </head>
@@ -108,6 +108,10 @@
     <div class="points" id="balance"></div>
     <div class="grid" id="products"></div>
   </main>
+
+  <footer>
+    ⚠️ Изображения могут отличаться от реальных призов
+  </footer>
 
   <script>
     const SHEET_ID = '1hKaPZSx2KSeQgtjt6n1GDptxBnfSB701L-zximqmc44';
@@ -197,9 +201,5 @@
 
     fetchData();
   </script>
-
-  <footer>
-    ⚠️ Изображения могут отличаться от реальных призов
-  </footer>
 </body>
 </html>
