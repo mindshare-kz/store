@@ -5,30 +5,40 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Mindshare Store</title>
   <style>
-    body {
-      font-family: sans-serif;
-      text-align: center;
-      margin: 0;
-      padding: 0;
-      background: url('https://wallpaperaccess.com/full/2641047.gif') center center / cover no-repeat fixed;
-      position: relative;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
-    body::before {
-      content: '';
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(255, 255, 255, 0.70);
-      z-index: 0;
-    }
-    main {
-      position: relative;
-      z-index: 1;
-      padding-top: 34px;
-      flex: 1;
-    }
+body {
+  font-family: sans-serif;
+  text-align: center;
+  margin: 0;
+  padding: 0;
+  background: url('https://wallpaperaccess.com/full/2641047.gif') center center / cover no-repeat fixed;
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+body::before {
+  content: '';
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(255, 255, 255, 0.70);
+  z-index: 0;
+}
+main {
+  position: relative;
+  z-index: 1;
+  padding-top: 34px;
+  padding-bottom: 40px;
+  flex: 1;
+}
+footer {
+  text-align: center;
+  font-size: 14px;
+  color: #333;
+  opacity: 0.7;
+  padding: 20px 10px;
+  z-index: 1;
+  background: transparent;
+}
     .user-select {
       background: rgba(255, 255, 255, 0.55);
       border-radius: 60px;
