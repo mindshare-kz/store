@@ -2,98 +2,68 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Mindshare Store</title>
   <style>
-    html, body {
+    body {
+      font-family: sans-serif;
+      text-align: center;
       margin: 0;
       padding: 0;
-      font-family: sans-serif;
-      min-height: 100vh;
       background: url('https://wallpaperaccess.com/full/2641047.gif') center center / cover no-repeat fixed;
-      display: flex;
-      flex-direction: column;
+      position: relative;
     }
-
     body::before {
       content: '';
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(255, 255, 255, 0.7);
+      background: rgba(255, 255, 255, 0.70);
       z-index: 0;
     }
-
-    .wrapper {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
+    main {
       position: relative;
       z-index: 1;
+      padding-top: 34px;
     }
-
-    main {
-      flex: 1;
-      padding: 34px 20px 40px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-
     .user-select {
       background: rgba(255, 255, 255, 0.55);
       border-radius: 60px;
-      font-size: 20px;
+      margin: 20px auto;
+      font-size: 25px;
       height: 42px;
       text-align: center;
       text-align-last: center;
-      padding: 4px 20px;
-      margin-bottom: 16px;
     }
-
     .points {
       font-size: 22px;
       margin-bottom: 20px;
-      text-align: center;
     }
-
     .grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
       gap: 20px;
-      width: 100%;
-      max-width: 1300px;
+      padding: 20px;
     }
-
     .card {
       background: white;
       border-radius: 20px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
       padding: 16px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: space-between;
-      height: 100%;
+      max-width: 300px;
+      margin: 0 auto;
     }
-
     .card img {
       width: 100%;
-      max-height: 160px;
-      object-fit: contain;
-      border-radius: 12px;
+      height: auto;
     }
-
     .card h3 {
       margin: 10px 0 5px;
       font-size: 18px;
-      text-align: center;
     }
-
     .card p {
       margin: 0 0 10px;
       font-size: 16px;
     }
-
     .btn {
       background: #9a3eff;
       color: white;
@@ -104,64 +74,43 @@
       font-size: 16px;
       transition: background 0.3s, transform 0.2s;
     }
-
     .btn:hover:not(:disabled) {
       background: #7820d8;
       transform: scale(1.05);
     }
-
     .btn:disabled {
       background: #ccc;
       cursor: not-allowed;
     }
-
-    footer {
-      text-align: center;
-      font-size: 14px;
-      color: #333;
-      opacity: 0.7;
-      padding: 16px 10px;
-      z-index: 1;
-    }
   </style>
 </head>
 <body>
-  <div class="wrapper">
-    <main>
-      <select id="user" class="user-select"></select>
-      <div class="points" id="balance"></div>
-      <div class="grid" id="products"></div>
-    </main>
-    <footer>Изображения могут отличаться от реальных призов.</footer>
-  </div>
+  <main>
+    <select id="user" class="user-select"></select>
+    <div class="points" id="balance"></div>
+    <div class="grid" id="products"></div>
+  </main>
 
   <script>
     const SHEET_ID = '1hKaPZSx2KSeQgtjt6n1GDptxBnfSB701L-zximqmc44';
-    const BALANCE_URL = `https://opensheet.elk.sh/${SHEET_ID}/Баллы`;
-    const PRODUCTS_URL = `https://opensheet.elk.sh/${SHEET_ID}/Призы`;
-    const LOG_URL = 'https://script.google.com/macros/s/AKfycbw7UwAzXuwwIh4DFdfcsXGsQQTSQRmbWa62k7HS1uP4QKbizbqJyjNhxV6Ok0AknF6S2A/exec`;
+    const BALANCE_URL = https://opensheet.elk.sh/${SHEET_ID}/Баллы;
+    const PRODUCTS_URL = https://opensheet.elk.sh/${SHEET_ID}/Призы;
+    const LOG_URL = 'https://script.google.com/macros/s/AKfycbw7UwAzXuwwIh4DFdfcsXGsQQTSQRmbWa62k7HS1uP4QKbizbqJyjNhxV6Ok0AknF6S2A/exec';
 
     let balances = [];
     let products = [];
 
     async function fetchData() {
-      try {
-        const [balanceData, productData] = await Promise.all([
-          fetch(BALANCE_URL).then(r => r.json()),
-          fetch(PRODUCTS_URL).then(r => r.json())
-        ]);
-
-        balances = balanceData.map(b => ({
-          login: b.login?.trim(),
-          points: parseInt(b.points?.trim() || '0')
-        }));
-
-        products = productData;
-        populateUsers();
-      } catch (e) {
-        alert('Ошибка загрузки данных. Попробуйте позже.');
-        console.error(e);
-      }
+      const [balanceData, productData] = await Promise.all([
+        fetch(BALANCE_URL).then(r => r.json()),
+        fetch(PRODUCTS_URL).then(r => r.json())
+      ]);
+      balances = balanceData.map(b => ({
+        login: b.login.trim(),
+        points: parseInt(b.points?.trim?.() || b["        points"]?.trim?.() || '0')
+      }));
+      products = productData;
+      populateUsers();
     }
 
     function populateUsers() {
@@ -181,14 +130,13 @@
         localStorage.setItem('selectedLogin', select.value);
         render();
       });
-
       render();
     }
 
     function render() {
       const login = document.getElementById('user').value;
       const balance = parseInt(balances.find(b => b.login === login)?.points || 0);
-      document.getElementById('balance').textContent = `Доступно баллов: ${balance}`;
+      document.getElementById('balance').textContent = Доступно баллов: ${balance};
       const grid = document.getElementById('products');
       grid.innerHTML = '';
 
@@ -198,12 +146,12 @@
 
         const disabled = balance < p.points ? 'disabled' : '';
 
-        card.innerHTML = `
+        card.innerHTML = 
           <img src="${p.image}" alt="${p.name}" />
           <h3>${p.name}</h3>
           <p>${p.points} баллов</p>
           <button class="btn" ${disabled} onclick="buy('${login}', '${p.name}', ${p.points}, this)">Получить</button>
-        `;
+        ;
         grid.appendChild(card);
       });
     }
@@ -224,7 +172,7 @@
 
         render();
 
-        fetch(`${LOG_URL}?user=${encodeURIComponent(user)}&item=${encodeURIComponent(item)}&points=${points}`)
+        fetch(${LOG_URL}?user=${encodeURIComponent(user)}&item=${encodeURIComponent(item)}&points=${points})
           .catch(() => alert('Ошибка. Повторите позже.'));
       }
     }
