@@ -23,7 +23,7 @@
     main {
       position: relative;
       z-index: 1;
-      padding-top: 34px;
+      padding-top: 40px;
     }
     .user-select {
       background: rgba(255, 255, 255, 0.55);
@@ -93,8 +93,8 @@
 
   <script>
     const SHEET_ID = '1hKaPZSx2KSeQgtjt6n1GDptxBnfSB701L-zximqmc44';
-    const BALANCE_URL = https://opensheet.elk.sh/${SHEET_ID}/Баллы;
-    const PRODUCTS_URL = https://opensheet.elk.sh/${SHEET_ID}/Призы;
+    const BALANCE_URL = `https://opensheet.elk.sh/${SHEET_ID}/Баллы`;
+    const PRODUCTS_URL = `https://opensheet.elk.sh/${SHEET_ID}/Призы`;
     const LOG_URL = 'https://script.google.com/macros/s/AKfycbw7UwAzXuwwIh4DFdfcsXGsQQTSQRmbWa62k7HS1uP4QKbizbqJyjNhxV6Ok0AknF6S2A/exec';
 
     let balances = [];
@@ -136,7 +136,7 @@
     function render() {
       const login = document.getElementById('user').value;
       const balance = parseInt(balances.find(b => b.login === login)?.points || 0);
-      document.getElementById('balance').textContent = Доступно баллов: ${balance};
+      document.getElementById('balance').textContent = `Доступно баллов: ${balance}`;
       const grid = document.getElementById('products');
       grid.innerHTML = '';
 
@@ -146,12 +146,12 @@
 
         const disabled = balance < p.points ? 'disabled' : '';
 
-        card.innerHTML = 
+        card.innerHTML = `
           <img src="${p.image}" alt="${p.name}" />
           <h3>${p.name}</h3>
           <p>${p.points} баллов</p>
           <button class="btn" ${disabled} onclick="buy('${login}', '${p.name}', ${p.points}, this)">Получить</button>
-        ;
+        `;
         grid.appendChild(card);
       });
     }
@@ -172,7 +172,7 @@
 
         render();
 
-        fetch(${LOG_URL}?user=${encodeURIComponent(user)}&item=${encodeURIComponent(item)}&points=${points})
+        fetch(`${LOG_URL}?user=${encodeURIComponent(user)}&item=${encodeURIComponent(item)}&points=${points}`)
           .catch(() => alert('Ошибка. Повторите позже.'));
       }
     }
