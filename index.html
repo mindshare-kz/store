@@ -2,45 +2,47 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Mindshare Store</title>
   <style>
-    body {
-      font-family: sans-serif;
-      text-align: center;
+    html, body {
       margin: 0;
       padding: 0;
+      font-family: sans-serif;
+      height: 100%;
       background: url('https://wallpaperaccess.com/full/2641047.gif') center center / cover no-repeat fixed;
-      position: relative;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
     }
 
     body::before {
       content: '';
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(255, 255, 255, 0.70);
+      background: rgba(255, 255, 255, 0.7);
       z-index: 0;
     }
 
-    main {
+    .wrapper {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
       position: relative;
       z-index: 1;
-      padding-top: 34px;
-      padding-bottom: 40px;
+    }
+
+    main {
       flex: 1;
+      padding: 34px 20px 40px;
     }
 
     .user-select {
       background: rgba(255, 255, 255, 0.55);
       border-radius: 60px;
-      margin: 20px auto;
-      font-size: 25px;
+      margin: 0 auto 20px;
+      font-size: 20px;
       height: 42px;
       text-align: center;
       text-align-last: center;
+      padding: 4px 20px;
     }
 
     .points {
@@ -52,7 +54,6 @@
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
       gap: 20px;
-      padding: 20px;
     }
 
     .card {
@@ -60,17 +61,13 @@
       border-radius: 20px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
       padding: 16px;
-      max-width: 300px;
-      margin: 0 auto;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      height: 100%;
     }
 
     .card img {
       width: 100%;
-      height: auto;
       max-height: 180px;
       object-fit: contain;
     }
@@ -111,22 +108,20 @@
       font-size: 14px;
       color: #333;
       opacity: 0.7;
-      padding: 20px 10px;
-      z-index: 1;
+      padding: 16px 10px;
       background: transparent;
     }
   </style>
 </head>
 <body>
-  <main>
-    <select id="user" class="user-select"></select>
-    <div class="points" id="balance"></div>
-    <div class="grid" id="products"></div>
-  </main>
-
-  <footer>
-    Изображения могут отличаться от реальных призов.
-  </footer>
+  <div class="wrapper">
+    <main>
+      <select id="user" class="user-select"></select>
+      <div class="points" id="balance"></div>
+      <div class="grid" id="products"></div>
+    </main>
+    <footer>Изображения могут отличаться от реальных призов.</footer>
+  </div>
 
   <script>
     const SHEET_ID = '1hKaPZSx2KSeQgtjt6n1GDptxBnfSB701L-zximqmc44';
@@ -138,16 +133,22 @@
     let products = [];
 
     async function fetchData() {
-      const [balanceData, productData] = await Promise.all([
-        fetch(BALANCE_URL).then(r => r.json()),
-        fetch(PRODUCTS_URL).then(r => r.json())
-      ]);
-      balances = balanceData.map(b => ({
-        login: b.login.trim(),
-        points: parseInt(b.points?.trim?.() || b["        points"]?.trim?.() || '0')
-      }));
-      products = productData;
-      populateUsers();
+      try {
+        const [balanceData, productData] = await Promise.all([
+          fetch(BALANCE_URL).then(r => r.json()),
+          fetch(PRODUCTS_URL).then(r => r.json())
+        ]);
+
+        balances = balanceData.map(b => ({
+          login: b.login.trim(),
+          points: parseInt(b.points?.trim?.() || b["        points"]?.trim?.() || '0')
+        }));
+        products = productData;
+        populateUsers();
+      } catch (e) {
+        alert('Ошибка загрузки данных. Попробуйте позже.');
+        console.error(e);
+      }
     }
 
     function populateUsers() {
@@ -167,6 +168,7 @@
         localStorage.setItem('selectedLogin', select.value);
         render();
       });
+
       render();
     }
 
