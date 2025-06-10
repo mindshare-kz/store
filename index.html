@@ -17,7 +17,7 @@
       content: '';
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(255, 255, 255, 0.70);
+      background: rgba(255, 255, 255, 0.7);
       z-index: 0;
     }
     main {
@@ -64,6 +64,11 @@
       margin: 0 0 10px;
       font-size: 16px;
     }
+    .remaining {
+      font-size: 14px;
+      color: #888;
+      margin-bottom: 8px;
+    }
     .btn {
       background: #9a3eff;
       color: white;
@@ -82,13 +87,10 @@
       background: #ccc;
       cursor: not-allowed;
     }
-    .footer-note {
+    .note {
+      margin-top: 10px;
       font-size: 14px;
-      color: #444;
-      margin-top: 40px;
-      padding-bottom: 20px;
-      position: relative;
-      z-index: 1;
+      color: #555;
     }
   </style>
 </head>
@@ -97,7 +99,7 @@
     <select id="user" class="user-select"></select>
     <div class="points" id="balance"></div>
     <div class="grid" id="products"></div>
-    <div class="footer-note">⚠️ Изображения могут отличаться от реальных призов</div>
+    <div class="note">⚠️ Изображения могут отличаться от реальных призов</div>
   </main>
 
   <script>
@@ -142,59 +144,59 @@
       render();
     }
 
-function render() {
-  const login = document.getElementById('user').value;
-  const balance = parseInt(balances.find(b => b.login === login)?.points || 0);
-  document.getElementById('balance').textContent = `Доступно баллов: ${balance}`;
-  const grid = document.getElementById('products');
-  grid.innerHTML = '';
+    function render() {
+      const login = document.getElementById('user').value;
+      const balance = parseInt(balances.find(b => b.login === login)?.points || 0);
+      document.getElementById('balance').textContent = `Доступно баллов: ${balance}`;
+      const grid = document.getElementById('products');
+      grid.innerHTML = '';
 
-  products.forEach((p, index) => {
-    const card = document.createElement('div');
-    card.className = 'card';
+      products.forEach(p => {
+        const card = document.createElement('div');
+        card.className = 'card';
 
-    const available = parseInt(p.quantity || 0);
-    const enoughPoints = balance >= p.points;
-    const canBuy = available > 0 && enoughPoints;
+        const quantity = p.quantity?.trim();
+        const isLimited = quantity !== "" && !isNaN(quantity);
+        const remainingText = isLimited ? `Осталось: ${quantity}` : "";
+        const remainingNum = isLimited ? parseInt(quantity) : null;
 
-    card.innerHTML = `
-      <img src="${p.image}" alt="${p.name}" />
-      <h3>${p.name}</h3>
-      <p>${p.points} баллов</p>
-      <p>Осталось: ${available}</p>
-      <button class="btn" ${canBuy ? '' : 'disabled'} onclick="buy('${login}', '${p.name}', ${p.points}, ${index}, this)">
-        Получить
-      </button>
-    `;
-    grid.appendChild(card);
-  });
-}
+        const notEnoughPoints = balance < p.points;
+        const outOfStock = isLimited && remainingNum === 0;
 
+        const disabled = notEnoughPoints || outOfStock ? 'disabled' : '';
 
-function buy(user, item, points, index, btn) {
-  if (!btn.disabled) {
-    btn.disabled = true;
-    btn.style.background = '#ccc';
-    alert('Приз можно забрать у команды Research. Поздравляем! ✨');
-
-    const userBalance = balances.find(b => b.login === user);
-    const product = products[index];
-
-    if (userBalance && userBalance.points >= points && product.quantity > 0) {
-      userBalance.points -= points;
-      product.quantity = parseInt(product.quantity) - 1;
-    } else {
-      alert('Недостаточно баллов или приз закончился');
-      return;
+        card.innerHTML = `
+          <img src="${p.image}" alt="${p.name}" />
+          <h3>${p.name}</h3>
+          <p>${p.points} баллов</p>
+          ${remainingText ? `<div class="remaining">${remainingText}</div>` : ''}
+          <button class="btn" ${disabled} onclick="buy('${login}', '${p.name}', ${p.points}, this)">Получить</button>
+        `;
+        grid.appendChild(card);
+      });
     }
 
-    render();
+    function buy(user, item, points, btn) {
+      if (!btn.disabled) {
+        btn.disabled = true;
+        btn.style.background = '#ccc';
+        alert('Приз можно забрать у команды Research. Поздравляем! ✨');
 
-    fetch(`${LOG_URL}?user=${encodeURIComponent(user)}&item=${encodeURIComponent(item)}&points=${points}`)
-      .catch(() => alert('Ошибка. Повторите позже.'));
-  }
-}
+        const userBalance = balances.find(b => b.login === user);
+        if (userBalance && userBalance.points >= points) {
+          userBalance.points -= points;
+        } else {
+          alert('Недостаточно баллов');
+          return;
+        }
 
+        render();
+
+        fetch(`${LOG_URL}?user=${encodeURIComponent(user)}&item=${encodeURIComponent(item)}&points=${points}`)
+          .catch(() => alert('Ошибка. Повторите позже.'))
+          .then(() => fetchData()); // после покупки — обновить данные с сервера
+      }
+    }
 
     fetchData();
   </script>
