@@ -17,7 +17,7 @@
       content: '';
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(255, 255, 255, 0.7);
+      background: rgba(255, 255, 255, 0.70);
       z-index: 0;
     }
     main {
@@ -64,11 +64,6 @@
       margin: 0 0 10px;
       font-size: 16px;
     }
-    .remaining {
-      font-size: 14px;
-      color: #888;
-      margin-bottom: 8px;
-    }
     .btn {
       background: #9a3eff;
       color: white;
@@ -87,10 +82,13 @@
       background: #ccc;
       cursor: not-allowed;
     }
-    .note {
-      margin-top: 10px;
+    .footer-note {
       font-size: 14px;
-      color: #555;
+      color: #444;
+      margin-top: 40px;
+      padding-bottom: 20px;
+      position: relative;
+      z-index: 1;
     }
   </style>
 </head>
@@ -99,7 +97,7 @@
     <select id="user" class="user-select"></select>
     <div class="points" id="balance"></div>
     <div class="grid" id="products"></div>
-    <div class="note">⚠️ Изображения могут отличаться от реальных призов</div>
+    <div class="footer-note">⚠️ Изображения могут отличаться от реальных призов</div>
   </main>
 
   <script>
@@ -155,57 +153,38 @@
         const card = document.createElement('div');
         card.className = 'card';
 
-        const quantity = p.quantity?.trim();
-        const isLimited = quantity !== "" && !isNaN(quantity);
-        const remainingText = isLimited ? `Осталось: ${quantity}` : "";
-        const remainingNum = isLimited ? parseInt(quantity) : null;
-
-        const notEnoughPoints = balance < p.points;
-        const outOfStock = isLimited && remainingNum === 0;
-
-        const disabled = notEnoughPoints || outOfStock ? 'disabled' : '';
+        const disabled = balance < p.points ? 'disabled' : '';
 
         card.innerHTML = `
           <img src="${p.image}" alt="${p.name}" />
           <h3>${p.name}</h3>
           <p>${p.points} баллов</p>
-          ${remainingText ? `<div class="remaining">${remainingText}</div>` : ''}
           <button class="btn" ${disabled} onclick="buy('${login}', '${p.name}', ${p.points}, this)">Получить</button>
         `;
         grid.appendChild(card);
       });
     }
 
-function buy(user, item, points, btn) {
-  if (!btn.disabled) {
-    btn.disabled = true;
-    btn.style.background = '#ccc';
+    function buy(user, item, points, btn) {
+      if (!btn.disabled) {
+        btn.disabled = true;
+        btn.style.background = '#ccc';
+        alert('Приз можно забрать у команды Research. Поздравляем! ✨');
 
-    fetch(`${LOG_URL}?user=${encodeURIComponent(user)}&item=${encodeURIComponent(item)}&points=${points}`)
-      .then(res => {
-        if (res.ok) {
-          // Применяем изменения локально сразу
-          const userBalance = balances.find(b => b.login === user);
-          if (userBalance) userBalance.points -= points;
-
-          const product = products.find(p => p.name === item);
-          const quantity = product.quantity?.trim();
-          if (quantity !== "" && !isNaN(quantity)) {
-            product.quantity = String(parseInt(quantity) - 1);
-          }
-
-          render(); // обновляем UI
+        const userBalance = balances.find(b => b.login === user);
+        if (userBalance && userBalance.points >= points) {
+          userBalance.points -= points;
         } else {
-          alert('Ошибка записи, попробуйте позже');
+          alert('Недостаточно баллов');
+          return;
         }
-      })
-      .catch(err => {
-        console.error(err);
-        alert('Ошибка сети');
-      });
-  }
-}
 
+        render();
+
+        fetch(`${LOG_URL}?user=${encodeURIComponent(user)}&item=${encodeURIComponent(item)}&points=${points}`)
+          .catch(() => alert('Ошибка. Повторите позже.'));
+      }
+    }
 
     fetchData();
   </script>
