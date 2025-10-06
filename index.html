@@ -100,7 +100,6 @@
     <div class="footer-note">⚠️ Изображения могут отличаться от реальных призов</div>
   </main>
 
-  <script src="bonusCheck.js"></script>
   <script>
     const SHEET_ID = '1hKaPZSx2KSeQgtjt6n1GDptxBnfSB701L-zximqmc44';
     const BALANCE_URL = `https://opensheet.elk.sh/${SHEET_ID}/Баллы`;
@@ -143,26 +142,18 @@
       render();
     }
 
-    async function render() {
+    function render() {
       const login = document.getElementById('user').value;
       const balance = parseInt(balances.find(b => b.login === login)?.points || 0);
       document.getElementById('balance').textContent = `Доступно баллов: ${balance}`;
       const grid = document.getElementById('products');
       grid.innerHTML = '';
 
-      // проверка бонусного приза
-      const hasBonus = await checkAndBlockSpecialPrize(login);
-
       products.forEach(p => {
         const card = document.createElement('div');
         card.className = 'card';
 
-        let disabled = balance < p.points ? 'disabled' : '';
-
-        // если это "Первый бонус-приз" и логин уже встречался — блокируем
-        if (p.name === "Первый бонус-приз" && hasBonus) {
-          disabled = 'disabled';
-        }
+        const disabled = balance < p.points ? 'disabled' : '';
 
         card.innerHTML = `
           <img src="${p.image}" alt="${p.name}" />
