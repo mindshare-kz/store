@@ -104,30 +104,21 @@
     const SHEET_ID = '1hKaPZSx2KSeQgtjt6n1GDptxBnfSB701L-zximqmc44';
     const BALANCE_URL = `https://opensheet.elk.sh/${SHEET_ID}/Баллы`;
     const PRODUCTS_URL = `https://opensheet.elk.sh/${SHEET_ID}/Призы`;
-    const LOG_URL = `https://opensheet.elk.sh/${SHEET_ID}/Магазин Логи`;
-    const ARCHIVE_URL = `https://opensheet.elk.sh/${SHEET_ID}/Архив покупок`;
+    const LOG_URL = 'https://script.google.com/macros/s/AKfycbw7UwAzXuwwIh4DFdfcsXGsQQTSQRmbWa62k7HS1uP4QKbizbqJyjNhxV6Ok0AknF6S2A/exec';
 
     let balances = [];
     let products = [];
-    let logs = [];
-    let archive = [];
 
     async function fetchData() {
-      const [balanceData, productData, logData, archiveData] = await Promise.all([
+      const [balanceData, productData] = await Promise.all([
         fetch(BALANCE_URL).then(r => r.json()),
-        fetch(PRODUCTS_URL).then(r => r.json()),
-        fetch(LOG_URL).then(r => r.json()),
-        fetch(ARCHIVE_URL).then(r => r.json())
+        fetch(PRODUCTS_URL).then(r => r.json())
       ]);
-
       balances = balanceData.map(b => ({
         login: b.login.trim(),
-        points: parseInt(b.points?.trim?.() || '0')
+        points: parseInt(b.points?.trim?.() || b["        points"]?.trim?.() || '0')
       }));
       products = productData;
-      logs = logData;
-      archive = archiveData;
-
       populateUsers();
     }
 
@@ -151,11 +142,6 @@
       render();
     }
 
-    function userHasPositivePurchase(user) {
-      const check = row => row.Логин === user && parseInt(row.Баллы || '0') > 0;
-      return logs.some(check) || archive.some(check);
-    }
-
     function render() {
       const login = document.getElementById('user').value;
       const balance = parseInt(balances.find(b => b.login === login)?.points || 0);
@@ -167,18 +153,13 @@
         const card = document.createElement('div');
         card.className = 'card';
 
-        let disabled = balance < p.points;
-
-        // 🔑 Проверка на первый бонус-приз
-        if (p.name === "Первый бонус-приз" && userHasPositivePurchase(login)) {
-          disabled = true;
-        }
+        const disabled = balance < p.points ? 'disabled' : '';
 
         card.innerHTML = `
           <img src="${p.image}" alt="${p.name}" />
           <h3>${p.name}</h3>
           <p>${p.points} баллов</p>
-          <button class="btn" ${disabled ? 'disabled' : ''} onclick="buy('${login}', '${p.name}', ${p.points}, this)">Получить</button>
+          <button class="btn" ${disabled} onclick="buy('${login}', '${p.name}', ${p.points}, this)">Получить</button>
         `;
         grid.appendChild(card);
       });
@@ -200,8 +181,7 @@
 
         render();
 
-        // ⚠️ тут оставляем старый вызов GAS для логирования
-        fetch(`https://script.google.com/macros/s/AKfycbw7UwAzXuwwIh4DFdfcsXGsQQTSQRmbWa62k7HS1uP4QKbizbqJyjNhxV6Ok0AknF6S2A/exec?user=${encodeURIComponent(user)}&item=${encodeURIComponent(item)}&points=${points}`)
+        fetch(`${LOG_URL}?user=${encodeURIComponent(user)}&item=${encodeURIComponent(item)}&points=${points}`)
           .catch(() => alert('Ошибка. Повторите позже.'));
       }
     }
