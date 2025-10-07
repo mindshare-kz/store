@@ -104,21 +104,28 @@
     const SHEET_ID = '1hKaPZSx2KSeQgtjt6n1GDptxBnfSB701L-zximqmc44';
     const BALANCE_URL = `https://opensheet.elk.sh/${SHEET_ID}/Баллы`;
     const PRODUCTS_URL = `https://opensheet.elk.sh/${SHEET_ID}/Призы`;
+    const LOGINS_URL = `https://opensheet.elk.sh/${SHEET_ID}/ВсеЛогины`;
     const LOG_URL = 'https://script.google.com/macros/s/AKfycbw7UwAzXuwwIh4DFdfcsXGsQQTSQRmbWa62k7HS1uP4QKbizbqJyjNhxV6Ok0AknF6S2A/exec';
 
     let balances = [];
     let products = [];
+    let usedLogins = [];
 
     async function fetchData() {
-      const [balanceData, productData] = await Promise.all([
-        fetch(BALANCE_URL).then(r => r.json()),
-        fetch(PRODUCTS_URL).then(r => r.json())
+      const [balanceData, productData, loginsData] = await Promise.all([
+        fetch(BALANCE_URL).then(r => r.json()).catch(() => []),
+        fetch(PRODUCTS_URL).then(r => r.json()).catch(() => []),
+        fetch(LOGINS_URL).then(r => r.json()).catch(() => [])
       ]);
+
       balances = balanceData.map(b => ({
-        login: b.login.trim(),
-        points: parseInt(b.points?.trim?.() || b["        points"]?.trim?.() || '0')
+        login: (b.login || "").trim(),
+        points: parseInt((b.points || b["points "] || "0").trim()) || 0
       }));
-      products = productData;
+
+      products = productData.filter(p => p.name && p.points);
+      usedLogins = loginsData.map(l => (l.login || l.Login || l['Логин'] || '').trim()).filter(Boolean);
+
       populateUsers();
     }
 
@@ -153,37 +160,47 @@
         const card = document.createElement('div');
         card.className = 'card';
 
-        const disabled = balance < p.points ? 'disabled' : '';
+        let disabled = balance < p.points;
+
+        // Если это "Первый бонус-приз" и логин уже был — блокируем
+        const isBonus = p.name.trim().toLowerCase() === "первый бонус-приз";
+        if (isBonus && usedLogins.includes(login)) {
+          disabled = true;
+        }
 
         card.innerHTML = `
           <img src="${p.image}" alt="${p.name}" />
           <h3>${p.name}</h3>
           <p>${p.points} баллов</p>
-          <button class="btn" ${disabled} onclick="buy('${login}', '${p.name}', ${p.points}, this)">Получить</button>
+          <button class="btn" ${disabled ? 'disabled' : ''} onclick="buy('${login}', '${p.name}', ${p.points}, this)">Получить</button>
         `;
         grid.appendChild(card);
       });
     }
 
     function buy(user, item, points, btn) {
-      if (!btn.disabled) {
-        btn.disabled = true;
-        btn.style.background = '#ccc';
-        alert('Приз можно забрать у команды Research. Поздравляем! ✨');
+      if (btn.disabled) return;
+      btn.disabled = true;
+      btn.style.background = '#ccc';
 
-        const userBalance = balances.find(b => b.login === user);
-        if (userBalance && userBalance.points >= points) {
-          userBalance.points -= points;
-        } else {
-          alert('Недостаточно баллов');
-          return;
-        }
+      alert('Приз можно забрать у команды Research. Поздравляем! ✨');
 
-        render();
-
-        fetch(`${LOG_URL}?user=${encodeURIComponent(user)}&item=${encodeURIComponent(item)}&points=${points}`)
-          .catch(() => alert('Ошибка. Повторите позже.'));
+      const userBalance = balances.find(b => b.login === user);
+      if (!userBalance || userBalance.points < points) {
+        alert('Недостаточно баллов');
+        btn.disabled = false;
+        return;
       }
+
+      userBalance.points -= points;
+      if (item.trim().toLowerCase() === "первый бонус-приз") {
+        usedLogins.push(user);
+      }
+
+      render();
+
+      fetch(`${LOG_URL}?user=${encodeURIComponent(user)}&item=${encodeURIComponent(item)}&points=${points}`)
+        .catch(() => alert('Ошибка записи, попробуйте позже.'));
     }
 
     fetchData();
