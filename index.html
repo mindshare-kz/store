@@ -104,37 +104,41 @@
     const SHEET_ID = '1k-pn0pQsG_DASbkJngH4yrq3qwNVaeuomm1DOBldXfw';
     const BALANCE_URL = `https://opensheet.elk.sh/${SHEET_ID}/Balance`;
     const PRODUCTS_URL = `https://opensheet.elk.sh/${SHEET_ID}/Prizes`;
+    const RECEIVED_BONUS_URL = `https://opensheet.elk.sh/${SHEET_ID}/Received Bonus`;
     const LOG_URL = 'https://script.google.com/macros/s/AKfycbxGOa6z2K_ZslFWMzhtjk5FbqYpF8yEYSLCGtL4yoBDil16jSVBxV4UPiZriiF0Hi_3Kg/exec';
 
     let balances = [];
     let products = [];
-    const userPurchased = {}; // хранит, нажимал ли пользователь любую кнопку
+    let receivedLogins = [];
 
     async function fetchData() {
       try {
-        const [balanceResp, productResp] = await Promise.all([
+        const [balanceResp, productResp, receivedResp] = await Promise.all([
           fetch(BALANCE_URL),
-          fetch(PRODUCTS_URL)
+          fetch(PRODUCTS_URL),
+          fetch(RECEIVED_BONUS_URL)
         ]);
 
         const balanceJson = await balanceResp.json();
         const productJson = await productResp.json();
+        const receivedJson = await receivedResp.json();
 
         const balanceData = Array.isArray(balanceJson) ? balanceJson : balanceJson.values || [];
         const productData = Array.isArray(productJson) ? productJson : productJson.values || [];
+        const receivedData = Array.isArray(receivedJson) ? receivedJson : receivedJson.values || [];
 
         balances = balanceData.map(b => ({
           login: (b.login || b.Login || '').trim(),
           points: parseInt((b.points || b["points "] || '0').toString().trim()) || 0
         }));
 
-        // помечаем первый бонус отдельным полем
         products = productData.map(p => ({
           name: p.name || p.Name || '',
           points: parseInt((p.points || p.Points || '0').toString().trim()) || 0,
-          image: p.image || p.Image || '',
-          isFirstBonus: (p.name || '').toLowerCase().includes('первый бонус')
+          image: p.image || p.Image || ''
         }));
+
+        receivedLogins = receivedData.map(r => (r.login || r.Login || '').trim());
 
         populateUsers();
       } catch (err) {
@@ -159,7 +163,6 @@
         localStorage.setItem('selectedLogin', select.value);
         render();
       });
-
       render();
     }
 
@@ -174,18 +177,18 @@
         const card = document.createElement('div');
         card.className = 'card';
 
-        let isDisabled = balance < p.points;
+        const isDisabled = balance < p.points;
+        const isFirstBonus = p.name === 'Первый бонус';
 
-        // блокируем первый бонус, если пользователь уже нажимал любую кнопку
-        if (p.isFirstBonus && userPurchased[login]) {
-          isDisabled = true;
-        }
+        // блокируем кнопку "Первый бонус", если пользователь уже в receivedLogins
+        const disableFirstBonus = isFirstBonus && receivedLogins.includes(login);
 
         card.innerHTML = `
           <img src="${p.image}" alt="${p.name}" />
           <h3>${p.name}</h3>
           <p>${p.points} баллов</p>
-          <button class="btn" ${isDisabled ? 'disabled' : ''} onclick="buy('${login}', '${p.name}', ${p.points}, this, ${p.isFirstBonus})">
+          <button class="btn" ${isDisabled || disableFirstBonus ? 'disabled' : ''} 
+            onclick="buy('${login}', '${p.name}', ${p.points}, this)">
             Получить
           </button>
         `;
@@ -193,11 +196,10 @@
       });
     }
 
-    function buy(user, item, points, btn, isFirstBonus) {
+    function buy(user, item, points, btn) {
       if (!btn.disabled) {
         btn.disabled = true;
         btn.style.background = '#ccc';
-
         alert('Приз можно забрать у команды Research. Поздравляем! ✨');
 
         const userBalance = balances.find(b => b.login === user);
@@ -208,8 +210,14 @@
           return;
         }
 
-        // отмечаем, что пользователь уже что-то получил
-        userPurchased[user] = true;
+        // после любого выбора блокируем кнопку "Первый бонус"
+        const gridButtons = document.querySelectorAll('.card button');
+        gridButtons.forEach(b => {
+          if (b.textContent.includes('Первый бонус')) {
+            b.disabled = true;
+            b.style.background = '#ccc';
+          }
+        });
 
         render();
 
