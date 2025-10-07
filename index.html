@@ -188,6 +188,12 @@
     }
 
     fetchData();
+    fetch(BALANCE_URL)
+  .then(r => r.json())
+  .then(data => {
+    console.log('Баллы fetched:', data);
+    balances = data.map(...);
+  });
   </script>
 </body>
 </html>
