@@ -150,20 +150,24 @@
       grid.innerHTML = '';
 
       products.forEach(p => {
-        const card = document.createElement('div');
-        card.className = 'card';
+  const card = document.createElement('div');
+  card.className = 'card';
 
-        const disabled = balance < p.points ? 'disabled' : '';
+  // Проверяем, хватает ли баллов
+  const isDisabled = balance < p.points;
 
-        card.innerHTML = 
-        card.innerHTML = `
-          <img src="${p.image}" alt="${p.name}" />
-          <h3>${p.name}</h3>
-          <p>${p.points} баллов</p>
-          <button class="btn" ${disabled} onclick="buy('${login}', '${p.name}', ${p.points}, this)">Получить</button>
-          `;
-        grid.appendChild(card);
-      });
+  card.innerHTML = `
+    <img src="${p.image}" alt="${p.name}" />
+    <h3>${p.name}</h3>
+    <p>${p.points} баллов</p>
+    <button class="btn" ${isDisabled ? 'disabled' : ''} onclick="buy('${login}', '${p.name}', ${p.points}, this)">
+      Получить
+    </button>
+  `;
+  grid.appendChild(card);
+});
+
+
     }
 
     function buy(user, item, points, btn) {
@@ -188,12 +192,7 @@
     }
 
     fetchData();
-    fetch(BALANCE_URL)
-  .then(r => r.json())
-  .then(data => {
-    console.log('Баллы fetched:', data);
-    balances = data.map(...);
-  });
+    
   </script>
 </body>
 </html>
