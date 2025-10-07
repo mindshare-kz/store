@@ -138,7 +138,7 @@
           image: p.image || p.Image || ''
         }));
 
-        receivedLogins = receivedData.map(r => (r.login || r.Login || '').trim());
+        receivedLogins = receivedData.map(r => (r.login || r.Login || r["Логин"] || '').trim().toLowerCase());
 
         populateUsers();
       } catch (err) {
