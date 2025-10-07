@@ -178,30 +178,38 @@
       });
     }
 
-    function buy(user, item, points, btn) {
-      if (btn.disabled) return;
-      btn.disabled = true;
-      btn.style.background = '#ccc';
+function buy(user, item, points, btn) {
+  if (btn.disabled) return;
+  btn.disabled = true;
+  btn.style.background = '#ccc';
 
+  points = Number(points); // гарантируем число
+
+  fetch(`${LOG_URL}?user=${encodeURIComponent(user)}&item=${encodeURIComponent(item)}&points=${points}`)
+    .then(res => res.text())
+    .then(() => {
       alert('Приз можно забрать у команды Research. Поздравляем! ✨');
 
-      const userBalance = balances.find(b => b.login === user);
-      if (!userBalance || userBalance.points < points) {
-        alert('Недостаточно баллов');
-        btn.disabled = false;
-        return;
-      }
-
-      userBalance.points -= points;
+      // Обновляем локальные баллы и usedLogins с сервера
+      return fetch(BALANCE_URL).then(r => r.json());
+    })
+    .then(balanceData => {
+      balances = balanceData.map(b => ({
+        login: (b.login || "").trim(),
+        points: Number(b.points || b["points "] || 0)
+      }));
       if (item.trim().toLowerCase() === "первый бонус-приз") {
         usedLogins.push(user);
       }
-
       render();
+    })
+    .catch(() => {
+      alert('Ошибка записи, попробуйте позже.');
+      btn.disabled = false;
+      btn.style.background = '#9a3eff';
+    });
+}
 
-      fetch(`${LOG_URL}?user=${encodeURIComponent(user)}&item=${encodeURIComponent(item)}&points=${points}`)
-        .catch(() => alert('Ошибка записи, попробуйте позже.'));
-    }
 
     fetchData();
   </script>
