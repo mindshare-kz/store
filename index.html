@@ -108,37 +108,39 @@
 
     let balances = [];
     let products = [];
+    const userPurchased = {}; // хранит, нажимал ли пользователь любую кнопку
 
-      async function fetchData() {
-        try {
-          const [balanceResp, productResp] = await Promise.all([
-            fetch(BALANCE_URL),
-            fetch(PRODUCTS_URL)
-          ]);
-      
-          const balanceJson = await balanceResp.json();
-          const productJson = await productResp.json();
-      
-          // OpenSheet может отдавать данные в { values: [...] } или как массив
-          const balanceData = Array.isArray(balanceJson) ? balanceJson : balanceJson.values || [];
-          const productData = Array.isArray(productJson) ? productJson : productJson.values || [];
-      
-          balances = balanceData.map(b => ({
-            login: (b.login || b.Login || '').trim(),
-            points: parseInt((b.points || b["points "] || '0').toString().trim()) || 0
-          }));
-      
-          products = productData.map(p => ({
-            name: p.name || p.Name || '',
-            points: parseInt((p.points || p.Points || '0').toString().trim()) || 0,
-            image: p.image || p.Image || ''
-          }));
-      
-          populateUsers();
-        } catch (err) {
-          console.error('Ошибка при загрузке данных:', err);
-        }
+    async function fetchData() {
+      try {
+        const [balanceResp, productResp] = await Promise.all([
+          fetch(BALANCE_URL),
+          fetch(PRODUCTS_URL)
+        ]);
+
+        const balanceJson = await balanceResp.json();
+        const productJson = await productResp.json();
+
+        const balanceData = Array.isArray(balanceJson) ? balanceJson : balanceJson.values || [];
+        const productData = Array.isArray(productJson) ? productJson : productJson.values || [];
+
+        balances = balanceData.map(b => ({
+          login: (b.login || b.Login || '').trim(),
+          points: parseInt((b.points || b["points "] || '0').toString().trim()) || 0
+        }));
+
+        // помечаем первый бонус отдельным полем
+        products = productData.map(p => ({
+          name: p.name || p.Name || '',
+          points: parseInt((p.points || p.Points || '0').toString().trim()) || 0,
+          image: p.image || p.Image || '',
+          isFirstBonus: (p.name || '').toLowerCase().includes('первый бонус')
+        }));
+
+        populateUsers();
+      } catch (err) {
+        console.error('Ошибка при загрузке данных:', err);
       }
+    }
 
     function populateUsers() {
       const select = document.getElementById('user');
@@ -157,6 +159,7 @@
         localStorage.setItem('selectedLogin', select.value);
         render();
       });
+
       render();
     }
 
@@ -168,30 +171,33 @@
       grid.innerHTML = '';
 
       products.forEach(p => {
-  const card = document.createElement('div');
-  card.className = 'card';
+        const card = document.createElement('div');
+        card.className = 'card';
 
-  // Проверяем, хватает ли баллов
-  const isDisabled = balance < p.points;
+        let isDisabled = balance < p.points;
 
-  card.innerHTML = `
-    <img src="${p.image}" alt="${p.name}" />
-    <h3>${p.name}</h3>
-    <p>${p.points} баллов</p>
-    <button class="btn" ${isDisabled ? 'disabled' : ''} onclick="buy('${login}', '${p.name}', ${p.points}, this)">
-      Получить
-    </button>
-  `;
-  grid.appendChild(card);
-});
+        // блокируем первый бонус, если пользователь уже нажимал любую кнопку
+        if (p.isFirstBonus && userPurchased[login]) {
+          isDisabled = true;
+        }
 
-
+        card.innerHTML = `
+          <img src="${p.image}" alt="${p.name}" />
+          <h3>${p.name}</h3>
+          <p>${p.points} баллов</p>
+          <button class="btn" ${isDisabled ? 'disabled' : ''} onclick="buy('${login}', '${p.name}', ${p.points}, this, ${p.isFirstBonus})">
+            Получить
+          </button>
+        `;
+        grid.appendChild(card);
+      });
     }
 
-    function buy(user, item, points, btn) {
+    function buy(user, item, points, btn, isFirstBonus) {
       if (!btn.disabled) {
         btn.disabled = true;
         btn.style.background = '#ccc';
+
         alert('Приз можно забрать у команды Research. Поздравляем! ✨');
 
         const userBalance = balances.find(b => b.login === user);
@@ -202,6 +208,9 @@
           return;
         }
 
+        // отмечаем, что пользователь уже что-то получил
+        userPurchased[user] = true;
+
         render();
 
         fetch(`${LOG_URL}?user=${encodeURIComponent(user)}&item=${encodeURIComponent(item)}&points=${points}`)
@@ -210,7 +219,6 @@
     }
 
     fetchData();
-    
   </script>
 </body>
 </html>
