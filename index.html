@@ -138,8 +138,7 @@
           image: p.image || p.Image || ''
         }));
 
-        receivedLogins = receivedData.map(r => (r.login || r.Login || '').trim().toLowerCase());
-
+       receivedLogins = receivedData.map(r => (r.login || r.Login || '').trim().toLowerCase());
         populateUsers();
       } catch (err) {
         console.error('Ошибка при загрузке данных:', err);
@@ -167,8 +166,8 @@
     }
 
     function render() {
-      const login = document.getElementById('user').value.toLowerCase();
-      const balance = balances.find(b => b.login.toLowerCase() === login)?.points || 0;
+      const login = document.getElementById('user').value;
+      const balance = parseInt(balances.find(b => b.login === login)?.points || 0);
       document.getElementById('balance').textContent = `Доступно баллов: ${balance}`;
       const grid = document.getElementById('products');
       grid.innerHTML = '';
@@ -179,6 +178,8 @@
 
         const isDisabled = balance < p.points;
         const isFirstBonus = p.name === 'Первый бонус';
+
+        // блокируем кнопку "Первый бонус", если пользователь уже в receivedLogins
         const disableFirstBonus = isFirstBonus && receivedLogins.includes(login);
 
         card.innerHTML = `
@@ -195,33 +196,33 @@
     }
 
     function buy(user, item, points, btn) {
-      if (btn.disabled) return;
+      if (!btn.disabled) {
+        btn.disabled = true;
+        btn.style.background = '#ccc';
+        alert('Приз можно забрать у команды Research. Поздравляем! ✨');
 
-      btn.disabled = true;
-      btn.style.background = '#ccc';
+        const userBalance = balances.find(b => b.login === user);
+        if (userBalance && userBalance.points >= points) {
+          userBalance.points -= points;
+        } else {
+          alert('Недостаточно баллов');
+          return;
+        }
 
-      const userBalance = balances.find(b => b.login.toLowerCase() === user.toLowerCase());
-      if (!userBalance || userBalance.points < points) {
-        alert('Недостаточно баллов');
-        return;
+        // после любого выбора блокируем кнопку "Первый бонус"
+        const gridButtons = document.querySelectorAll('.card button');
+        gridButtons.forEach(b => {
+          if (b.textContent.includes('Первый бонус')) {
+            b.disabled = true;
+            b.style.background = '#ccc';
+          }
+        });
+
+        render();
+
+        fetch(`${LOG_URL}?user=${encodeURIComponent(user)}&item=${encodeURIComponent(item)}&points=${points}`)
+          .catch(() => alert('Ошибка. Повторите позже.'));
       }
-
-      userBalance.points -= points;
-
-      // визуально блокируем кнопку "Первый бонус" после любого выбора
-      const firstBonusBtn = [...document.querySelectorAll('.card button')]
-        .find(b => b.textContent.includes('Первый бонус'));
-      if(firstBonusBtn) {
-        firstBonusBtn.disabled = true;
-        firstBonusBtn.style.background = '#ccc';
-      }
-
-      render();
-
-      alert('Приз можно забрать у команды Research. Поздравляем! ✨');
-
-      fetch(`${LOG_URL}?user=${encodeURIComponent(user)}&item=${encodeURIComponent(item)}&points=${points}`)
-        .catch(() => alert('Ошибка. Повторите позже.'));
     }
 
     fetchData();
