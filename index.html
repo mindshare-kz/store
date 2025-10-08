@@ -175,13 +175,13 @@
       products.forEach(p => {
         const card = document.createElement('div');
         card.className = 'card';
-
+      
         const isDisabled = balance < p.points;
         const isFirstBonus = p.name === 'Первый бонус';
-
+      
         // блокируем кнопку "Первый бонус", если пользователь уже в receivedLogins
-        const disableFirstBonus = isFirstBonus && receivedLogins.includes(login);
-
+        const disableFirstBonus = isFirstBonus && receivedLogins.includes(login.toLowerCase().trim());
+      
         card.innerHTML = `
           <img src="${p.image}" alt="${p.name}" />
           <h3>${p.name}</h3>
@@ -191,6 +191,7 @@
             Получить
           </button>
         `;
+      
         grid.appendChild(card);
       });
     }
