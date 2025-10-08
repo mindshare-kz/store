@@ -196,36 +196,34 @@
       });
     }
 
-    function buy(user, item, points, btn) {
-      if (!btn.disabled) {
-        btn.disabled = true;
-        btn.style.background = '#ccc';
-        alert('Приз можно забрать у команды Research. Поздравляем! ✨');
-
-        const userBalance = balances.find(b => b.login === user);
-        if (userBalance && userBalance.points >= points) {
-          userBalance.points -= points;
-        } else {
-          alert('Недостаточно баллов');
-          return;
-        }
-
-        // после любого выбора блокируем кнопку "Первый бонус"
-        const gridButtons = document.querySelectorAll('.card button');
-        gridButtons.forEach(b => {
-          if (b.textContent.includes('Первый бонус')) {
-            b.disabled = true;
-            b.style.background = '#ccc';
-          }
-        });
-
-        render();
-
-        fetch(`${LOG_URL}?user=${encodeURIComponent(user)}&item=${encodeURIComponent(item)}&points=${points}`)
-          .catch(() => alert('Ошибка. Повторите позже.'));
+     function buy(user, item, points, btn) {
+    if (!btn.disabled) {
+      btn.disabled = true;
+      btn.style.background = '#ccc';
+      alert('Приз можно забрать у команды Research. Поздравляем! ✨');
+  
+      const userBalance = balances.find(b => b.login === user);
+      if (userBalance && userBalance.points >= points) {
+        userBalance.points -= points;
+      } else {
+        alert('Недостаточно баллов');
+        return;
       }
+  
+      // Блокируем кнопку "Первый бонус" визуально
+      const firstBonusBtn = Array.from(document.querySelectorAll('.card button'))
+        .find(b => b.textContent.includes('Первый бонус'));
+      if (firstBonusBtn) {
+        firstBonusBtn.disabled = true;
+        firstBonusBtn.style.background = '#ccc';
+      }
+  
+      render();
+  
+      fetch(`${LOG_URL}?user=${encodeURIComponent(user)}&item=${encodeURIComponent(item)}&points=${points}`)
+        .catch(() => alert('Ошибка. Повторите позже.'));
     }
-
+  }
     fetchData();
   </script>
 </body>
