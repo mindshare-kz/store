@@ -101,131 +101,135 @@
   </main>
 
   <script>
-    const SHEET_ID = '1k-pn0pQsG_DASbkJngH4yrq3qwNVaeuomm1DOBldXfw';
-    const BALANCE_URL = `https://opensheet.elk.sh/${SHEET_ID}/Balance`;
-    const PRODUCTS_URL = `https://opensheet.elk.sh/${SHEET_ID}/Prizes`;
-    const RECEIVED_BONUS_URL = `https://opensheet.elk.sh/${SHEET_ID}/Received Bonus`;
-    const LOG_URL = 'https://script.google.com/macros/s/AKfycbxGOa6z2K_ZslFWMzhtjk5FbqYpF8yEYSLCGtL4yoBDil16jSVBxV4UPiZriiF0Hi_3Kg/exec';
+  const SHEET_ID = '1k-pn0pQsG_DASbkJngH4yrq3qwNVaeuomm1DOBldXfw';
+  const BALANCE_URL = `https://opensheet.elk.sh/${SHEET_ID}/Balance`;
+  const PRODUCTS_URL = `https://opensheet.elk.sh/${SHEET_ID}/Prizes`;
+  const RECEIVED_BONUS_URL = `https://opensheet.elk.sh/${SHEET_ID}/Received Bonus`;
+  const LOG_URL = 'https://script.google.com/macros/s/AKfycbxGOa6z2K_ZslFWMzhtjk5FbqYpF8yEYSLCGtL4yoBDil16jSVBxV4UPiZriiF0Hi_3Kg/exec';
 
-    let balances = [];
-    let products = [];
-    let receivedLogins = [];
+  let balances = [];
+  let products = [];
+  let receivedLogins = [];
 
-    async function fetchData() {
-      try {
-        const [balanceResp, productResp, receivedResp] = await Promise.all([
-          fetch(BALANCE_URL),
-          fetch(PRODUCTS_URL),
-          fetch(RECEIVED_BONUS_URL)
-        ]);
+  async function fetchData() {
+    try {
+      const [balanceResp, productResp, receivedResp] = await Promise.all([
+        fetch(BALANCE_URL),
+        fetch(PRODUCTS_URL),
+        fetch(RECEIVED_BONUS_URL)
+      ]);
 
-        const balanceJson = await balanceResp.json();
-        const productJson = await productResp.json();
-        const receivedJson = await receivedResp.json();
+      const balanceJson = await balanceResp.json();
+      const productJson = await productResp.json();
+      const receivedJson = await receivedResp.json();
 
-        const balanceData = Array.isArray(balanceJson) ? balanceJson : balanceJson.values || [];
-        const productData = Array.isArray(productJson) ? productJson : productJson.values || [];
-        const receivedData = Array.isArray(receivedJson) ? receivedJson : receivedJson.values || [];
+      const balanceData = Array.isArray(balanceJson) ? balanceJson : balanceJson.values || [];
+      const productData = Array.isArray(productJson) ? productJson : productJson.values || [];
+      const receivedData = Array.isArray(receivedJson) ? receivedJson : receivedJson.values || [];
 
-        balances = balanceData.map(b => ({
-          login: (b.login || b.Login || '').trim(),
-          points: parseInt((b.points || b["points "] || '0').toString().trim()) || 0
-        }));
+      balances = balanceData.map(b => ({
+        login: (b.login || b.Login || '').trim(),
+        points: parseInt((b.points || b["points "] || '0').toString().trim()) || 0
+      }));
 
-        products = productData.map(p => ({
-          name: p.name || p.Name || '',
-          points: parseInt((p.points || p.Points || '0').toString().trim()) || 0,
-          image: p.image || p.Image || ''
-        }));
+      products = productData.map(p => ({
+        name: p.name || p.Name || '',
+        points: parseInt((p.points || p.Points || '0').toString().trim()) || 0,
+        image: p.image || p.Image || ''
+      }));
 
-       receivedLogins = receivedData.map(r => (r.login || r.Login || '').trim().toLowerCase());
-        populateUsers();
-      } catch (err) {
-        console.error('Ошибка при загрузке данных:', err);
-      }
+      receivedLogins = receivedData.map(r => (r.login || r.Login || '').trim().toLowerCase());
+
+      // подгружаем локально сохранённые логины, которые уже получили бонус
+      const savedReceived = JSON.parse(localStorage.getItem('receivedBonusLogins') || '[]');
+      receivedLogins = [...new Set([...receivedLogins, ...savedReceived])];
+
+      populateUsers();
+    } catch (err) {
+      console.error('Ошибка при загрузке данных:', err);
     }
+  }
 
-    function populateUsers() {
-      const select = document.getElementById('user');
-      select.innerHTML = '';
-      balances.forEach(u => {
-        const opt = document.createElement('option');
-        opt.value = u.login;
-        opt.textContent = u.login;
-        select.appendChild(opt);
-      });
+  function populateUsers() {
+    const select = document.getElementById('user');
+    select.innerHTML = '';
+    balances.forEach(u => {
+      const opt = document.createElement('option');
+      opt.value = u.login;
+      opt.textContent = u.login;
+      select.appendChild(opt);
+    });
 
-      const savedLogin = localStorage.getItem('selectedLogin');
-      if (savedLogin) select.value = savedLogin;
+    const savedLogin = localStorage.getItem('selectedLogin');
+    if (savedLogin) select.value = savedLogin;
 
-      select.addEventListener('change', () => {
-        localStorage.setItem('selectedLogin', select.value);
-        render();
-      });
+    select.addEventListener('change', () => {
+      localStorage.setItem('selectedLogin', select.value);
       render();
+    });
+    render();
+  }
+
+  function render() {
+    const login = document.getElementById('user').value;
+    const balance = parseInt(balances.find(b => b.login === login)?.points || 0);
+    document.getElementById('balance').textContent = `Доступно баллов: ${balance}`;
+    const grid = document.getElementById('products');
+    grid.innerHTML = '';
+
+    products.forEach(p => {
+      const card = document.createElement('div');
+      card.className = 'card';
+
+      const isDisabled = balance < p.points;
+      const isFirstBonus = p.name === 'Первый бонус';
+      const disableFirstBonus = isFirstBonus && receivedLogins.includes(login.toLowerCase());
+
+      const button = document.createElement('button');
+      button.className = 'btn';
+      button.textContent = disableFirstBonus ? 'Уже получен' : 'Получить';
+      button.disabled = isDisabled || disableFirstBonus;
+      button.onclick = () => buy(login, p.name, p.points, button);
+
+      card.innerHTML = `
+        <img src="${p.image}" alt="${p.name}" />
+        <h3>${p.name}</h3>
+        <p>${p.points} баллов</p>
+      `;
+      card.appendChild(button);
+      grid.appendChild(card);
+    });
+  }
+
+  function buy(user, item, points, btn) {
+    if (btn.disabled) return;
+
+    btn.disabled = true;
+    btn.style.background = '#ccc';
+    btn.textContent = 'Уже получен';
+    alert('Приз можно забрать у команды Research. Поздравляем! ✨');
+
+    const userBalance = balances.find(b => b.login === user);
+    if (userBalance && userBalance.points >= points) {
+      userBalance.points -= points;
+    } else {
+      alert('Недостаточно баллов');
+      return;
     }
 
-    function render() {
-      const login = document.getElementById('user').value;
-      const balance = parseInt(balances.find(b => b.login === login)?.points || 0);
-      document.getElementById('balance').textContent = `Доступно баллов: ${balance}`;
-      const grid = document.getElementById('products');
-      grid.innerHTML = '';
-
-      products.forEach(p => {
-        const card = document.createElement('div');
-        card.className = 'card';
-
-        const isDisabled = balance < p.points;
-        const isFirstBonus = p.name === 'Первый бонус';
-
-        // блокируем кнопку "Первый бонус", если пользователь уже в receivedLogins
-        const disableFirstBonus = isFirstBonus && receivedLogins.includes(login);
-
-        card.innerHTML = `
-          <img src="${p.image}" alt="${p.name}" />
-          <h3>${p.name}</h3>
-          <p>${p.points} баллов</p>
-          <button class="btn" ${isDisabled || disableFirstBonus ? 'disabled' : ''} 
-            onclick="buy('${login}', '${p.name}', ${p.points}, this)">
-            Получить
-          </button>
-        `;
-        grid.appendChild(card);
-      });
-    }
-
-    function buy(user, item, points, btn) {
-      if (!btn.disabled) {
-        btn.disabled = true;
-        btn.style.background = '#ccc';
-        alert('Приз можно забрать у команды Research. Поздравляем! ✨');
-
-        const userBalance = balances.find(b => b.login === user);
-        if (userBalance && userBalance.points >= points) {
-          userBalance.points -= points;
-        } else {
-          alert('Недостаточно баллов');
-          return;
-        }
-
-        // после любого выбора блокируем кнопку "Первый бонус"
-        const gridButtons = document.querySelectorAll('.card button');
-        gridButtons.forEach(b => {
-          if (b.textContent.includes('Первый бонус')) {
-            b.disabled = true;
-            b.style.background = '#ccc';
-          }
-        });
-
-        render();
-
-        fetch(`${LOG_URL}?user=${encodeURIComponent(user)}&item=${encodeURIComponent(item)}&points=${points}`)
-          .catch(() => alert('Ошибка. Повторите позже.'));
+    // если это "Первый бонус" — добавляем логин в локальный список
+    if (item === 'Первый бонус') {
+      if (!receivedLogins.includes(user.toLowerCase())) {
+        receivedLogins.push(user.toLowerCase());
+        localStorage.setItem('receivedBonusLogins', JSON.stringify(receivedLogins));
       }
     }
 
-    fetchData();
-  </script>
+    fetch(`${LOG_URL}?user=${encodeURIComponent(user)}&item=${encodeURIComponent(item)}&points=${points}`)
+      .catch(() => alert('Ошибка. Повторите позже.'));
+  }
+
+  fetchData();
+</script>
 </body>
 </html>
