@@ -1,14 +1,20 @@
+// === Конфигурация ===
 const SHEET_ID = '1k-pn0pQsG_DASbkJngH4yrq3qwNVaeuomm1DOBldXfw';
 const BALANCE_URL = `https://opensheet.elk.sh/${SHEET_ID}/Balance`;
 const PRODUCTS_URL = `https://opensheet.elk.sh/${SHEET_ID}/Prizes`;
 const RECEIVED_BONUS_URL = `https://opensheet.elk.sh/${SHEET_ID}/Received Bonus`;
-const LOG_URL = 'https://script.google.com/macros/s/AKfycbyTn_KsNLz8w0vjZ-gPlRNSjiN8G478OkJxURYm9VQBzTLEjmhmtqUHwTcEQWHU7umdiw/exec';
+const LOG_URL = 'https://script.google.com/macros/s/AKfycbyTn_KsNLz8w0vjZ-gPlRNSjiN8G478OkJxURYm9VQBzTLEjmhmtqUHwTcEQWHU7umdiw/exec`;
 
+// === Глобальные переменные ===
 let balances = [];
 let products = [];
 let receivedLogins = [];
 let firstBonusBlockedForUser = false;
 
+// === Основной запуск ===
+fetchData();
+
+// === Функция загрузки данных ===
 async function fetchData() {
   try {
     const [balanceResp, productResp, receivedResp] = await Promise.all([
@@ -17,35 +23,39 @@ async function fetchData() {
       fetch(RECEIVED_BONUS_URL)
     ]);
 
-    const balanceJson = await balanceResp.json();
-    const productJson = await productResp.json();
-    const receivedJson = await receivedResp.json();
+    const [balanceData, productData, receivedData] = await Promise.all([
+      balanceResp.json(),
+      productResp.json(),
+      receivedResp.json()
+    ]);
 
-    const balanceData = Array.isArray(balanceJson) ? balanceJson : balanceJson.values || [];
-    const productData = Array.isArray(productJson) ? productJson : productJson.values || [];
-    const receivedData = Array.isArray(receivedJson) ? receivedJson : receivedJson.values || [];
-
-    balances = balanceData.map(b => ({
+    balances = (Array.isArray(balanceData) ? balanceData : balanceData.values || []).map(b => ({
       login: (b.login || b.Login || '').trim(),
-      points: parseInt((b.points || b["points "] || '0').toString().trim()) || 0
+      points: parseInt((b.points || b['points '] || '0').toString().trim()) || 0
     }));
 
-    products = productData.map(p => ({
+    products = (Array.isArray(productData) ? productData : productData.values || []).map(p => ({
       name: p.name || p.Name || '',
       points: parseInt((p.points || p.Points || '0').toString().trim()) || 0,
       image: p.image || p.Image || ''
     }));
 
-    receivedLogins = receivedData.map(r => (r.login || r.Login || '').trim().toLowerCase());
+    receivedLogins = (Array.isArray(receivedData) ? receivedData : receivedData.values || []).map(r =>
+      (r.login || r.Login || '').trim().toLowerCase()
+    );
+
     populateUsers();
   } catch (err) {
     console.error('Ошибка при загрузке данных:', err);
+    alert('Ошибка загрузки данных. Попробуйте обновить страницу.');
   }
 }
 
+// === Наполнение списка пользователей ===
 function populateUsers() {
   const select = document.getElementById('user');
   select.innerHTML = '';
+
   balances.forEach(u => {
     const opt = document.createElement('option');
     opt.value = u.login;
@@ -54,20 +64,25 @@ function populateUsers() {
   });
 
   const savedLogin = localStorage.getItem('selectedLogin');
-  if (savedLogin) select.value = savedLogin;
+  if (savedLogin && balances.some(b => b.login === savedLogin)) {
+    select.value = savedLogin;
+  }
 
   select.addEventListener('change', () => {
     localStorage.setItem('selectedLogin', select.value);
     firstBonusBlockedForUser = false;
     render();
   });
+
   render();
 }
 
+// === Отрисовка магазина ===
 function render() {
   const login = document.getElementById('user').value;
-  const balance = parseInt(balances.find(b => b.login === login)?.points || 0);
+  const balance = balances.find(b => b.login === login)?.points || 0;
   document.getElementById('balance').textContent = `Доступно баллов: ${balance}`;
+
   const grid = document.getElementById('products');
   grid.innerHTML = '';
 
@@ -76,42 +91,44 @@ function render() {
     card.className = 'card';
 
     const isDisabled = balance < p.points;
-    const isFirstBonus = p.name === 'Первый бонус';
+    const isFirstBonus = p.name.toLowerCase() === 'первый бонус';
     const disableFirstBonus = isFirstBonus && (firstBonusBlockedForUser || receivedLogins.includes(login.toLowerCase()));
 
     card.innerHTML = `
-      <img src="${p.image}" alt="${p.name}" />
+      <img src="${p.image}" alt="${p.name}">
       <h3>${p.name}</h3>
       <p>${p.points} баллов</p>
-      <button class="btn" ${isDisabled || disableFirstBonus ? 'disabled' : ''} 
+      <button 
+        class="btn"
+        ${isDisabled || disableFirstBonus ? 'disabled' : ''}
         onclick="buy('${login}', '${p.name}', ${p.points}, this)">
         Получить
       </button>
     `;
+
     grid.appendChild(card);
   });
 }
 
+// === Покупка приза ===
 function buy(user, item, points, btn) {
-  if (!btn.disabled) {
-    btn.disabled = true;
-    btn.style.background = '#ccc';
-    alert('Приз можно забрать у команды Research. Поздравляем! ✨');
+  if (btn.disabled) return;
 
-    const userBalance = balances.find(b => b.login === user);
-    if (userBalance && userBalance.points >= points) {
-      userBalance.points -= points;
-    } else {
-      alert('Недостаточно баллов');
-      return;
-    }
+  const userBalance = balances.find(b => b.login === user);
+  if (!userBalance) return alert('Пользователь не найден.');
+  if (userBalance.points < points) return alert('Недостаточно баллов.');
 
-    firstBonusBlockedForUser = true;
-    render();
+  // Обновляем локальный баланс
+  userBalance.points -= points;
+  firstBonusBlockedForUser = true;
+  render();
 
-    fetch(`${LOG_URL}?user=${encodeURIComponent(user)}&item=${encodeURIComponent(item)}&points=${points}`)
-      .catch(() => alert('Ошибка. Повторите позже.'));
-  }
+  // Визуальный фидбек
+  btn.disabled = true;
+  btn.textContent = 'Забронировано 🎉';
+  alert(`🎁 ${item} можно забрать у команды Research. Поздравляем!`);
+
+  // Логирование
+  fetch(`${LOG_URL}?user=${encodeURIComponent(user)}&item=${encodeURIComponent(item)}&points=${points}`)
+    .catch(() => alert('Ошибка при записи в лог. Попробуйте позже.'));
 }
-
-fetchData();
