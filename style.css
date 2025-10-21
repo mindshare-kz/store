@@ -96,3 +96,46 @@ main {
   position: relative;
   z-index: 1;
 }
+
+
+/* 🌟 Новая кнопка от Uiverse.io */
+#loadButton {
+  position: relative;
+  padding: 12px 35px;
+  background: #9a3eff;
+  font-size: 17px;
+  font-weight: 500;
+  color: #ffffff;
+  border: 3px solid #9a3eff;
+  border-radius: 50px;
+  box-shadow: 0 0 0 #fec1958c;
+  transition: all 0.3s ease-in-out;
+  cursor: pointer;
+  margin-bottom: 20px;
+}
+
+.star-1, .star-2, .star-3, .star-4, .star-5, .star-6 {
+  position: absolute;
+  width: 15px;
+  height: auto;
+  filter: drop-shadow(0 0 0 #7820d8);
+  z-index: -5;
+  transition: all 1s cubic-bezier(0.05, 0.83, 0.43, 0.96);
+}
+
+#loadButton:hover {
+  background: transparent;
+  color: #7820d8;
+  box-shadow: 0 0 25px #7820d8;
+}
+
+#loadButton:hover .star-1,
+#loadButton:hover .star-2,
+#loadButton:hover .star-3 {
+  filter: drop-shadow(0 0 10px #7820d8);
+  z-index: 2;
+}
+
+.fil0 {
+  fill: #fffdef;
+}
