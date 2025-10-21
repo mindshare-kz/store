@@ -4,93 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Mindshare Store</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      text-align: center;
-      margin: 0;
-      padding: 0;
-      background: url('https://wallpaperaccess.com/full/2641047.gif') center center / cover no-repeat fixed;
-      position: relative;
-    }
-    body::before {
-      content: '';
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(255, 255, 255, 0.70);
-      z-index: 0;
-    }
-    main {
-      position: relative;
-      z-index: 1;
-      padding-top: 40px;
-    }
-    .user-select {
-      background: rgba(255, 255, 255, 0.55);
-      border-radius: 60px;
-      margin: 20px auto;
-      font-size: 25px;
-      height: 42px;
-      text-align: center;
-      text-align-last: center;
-    }
-    .points {
-      font-size: 22px;
-      margin-bottom: 20px;
-    }
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 20px;
-      padding: 20px;
-    }
-    .card {
-      background: white;
-      border-radius: 20px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      padding: 16px;
-      max-width: 300px;
-      margin: 0 auto;
-    }
-    .card img {
-      width: 100%;
-      height: auto;
-    }
-    .card h3 {
-      margin: 10px 0 5px;
-      font-size: 18px;
-    }
-    .card p {
-      margin: 0 0 10px;
-      font-size: 16px;
-    }
-    .btn {
-      background: #9a3eff;
-      color: white;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 20px;
-      cursor: pointer;
-      font-size: 16px;
-      transition: background 0.3s, transform 0.2s;
-    }
-    .btn:hover:not(:disabled) {
-      background: #7820d8;
-      transform: scale(1.05);
-    }
-    .btn:disabled {
-      background: #ccc;
-      cursor: not-allowed;
-    }
-    .footer-note {
-      font-size: 14px;
-      color: #444;
-      margin-top: 40px;
-      padding-bottom: 20px;
-      position: relative;
-      z-index: 1;
-    }
-  </style>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <main>
@@ -100,128 +14,124 @@
     <div class="footer-note">⚠️ Изображения могут отличаться от реальных призов</div>
   </main>
 
-<script>
-const SHEET_ID = '1k-pn0pQsG_DASbkJngH4yrq3qwNVaeuomm1DOBldXfw';
-const BALANCE_URL = `https://opensheet.elk.sh/${SHEET_ID}/Balance`;
-const PRODUCTS_URL = `https://opensheet.elk.sh/${SHEET_ID}/Prizes`;
-const RECEIVED_BONUS_URL = `https://opensheet.elk.sh/${SHEET_ID}/Received Bonus`;
-const LOG_URL = 'https://script.google.com/macros/s/AKfycbyTn_KsNLz8w0vjZ-gPlRNSjiN8G478OkJxURYm9VQBzTLEjmhmtqUHwTcEQWHU7umdiw/exec';
+  <script>
+    const SHEET_ID = '1k-pn0pQsG_DASbkJngH4yrq3qwNVaeuomm1DOBldXfw';
+    const BALANCE_URL = `https://opensheet.elk.sh/${SHEET_ID}/Balance`;
+    const PRODUCTS_URL = `https://opensheet.elk.sh/${SHEET_ID}/Prizes`;
+    const RECEIVED_BONUS_URL = `https://opensheet.elk.sh/${SHEET_ID}/Received Bonus`;
+    const LOG_URL = 'https://script.google.com/macros/s/AKfycbyTn_KsNLz8w0vjZ-gPlRNSjiN8G478OkJxURYm9VQBzTLEjmhmtqUHwTcEQWHU7umdiw/exec';
 
-let balances = [];
-let products = [];
-let receivedLogins = [];
-let firstBonusBlockedForUser = false;
+    let balances = [];
+    let products = [];
+    let receivedLogins = [];
+    let firstBonusBlockedForUser = false;
 
-async function fetchData() {
-  try {
-    const [balanceResp, productResp, receivedResp] = await Promise.all([
-      fetch(BALANCE_URL),
-      fetch(PRODUCTS_URL),
-      fetch(RECEIVED_BONUS_URL)
-    ]);
+    async function fetchData() {
+      try {
+        const [balanceResp, productResp, receivedResp] = await Promise.all([
+          fetch(BALANCE_URL),
+          fetch(PRODUCTS_URL),
+          fetch(RECEIVED_BONUS_URL)
+        ]);
 
-    const balanceJson = await balanceResp.json();
-    const productJson = await productResp.json();
-    const receivedJson = await receivedResp.json();
+        const balanceJson = await balanceResp.json();
+        const productJson = await productResp.json();
+        const receivedJson = await receivedResp.json();
 
-    const balanceData = Array.isArray(balanceJson) ? balanceJson : balanceJson.values || [];
-    const productData = Array.isArray(productJson) ? productJson : productJson.values || [];
-    const receivedData = Array.isArray(receivedJson) ? receivedJson : receivedJson.values || [];
+        const balanceData = Array.isArray(balanceJson) ? balanceJson : balanceJson.values || [];
+        const productData = Array.isArray(productJson) ? productJson : productJson.values || [];
+        const receivedData = Array.isArray(receivedJson) ? receivedJson : receivedJson.values || [];
 
-    balances = balanceData.map(b => ({
-      login: (b.login || b.Login || '').trim(),
-      points: parseInt((b.points || b["points "] || '0').toString().trim()) || 0
-    }));
+        balances = balanceData.map(b => ({
+          login: (b.login || b.Login || '').trim(),
+          points: parseInt((b.points || b["points "] || '0').toString().trim()) || 0
+        }));
 
-    products = productData.map(p => ({
-      name: p.name || p.Name || '',
-      points: parseInt((p.points || p.Points || '0').toString().trim()) || 0,
-      image: p.image || p.Image || ''
-    }));
+        products = productData.map(p => ({
+          name: p.name || p.Name || '',
+          points: parseInt((p.points || p.Points || '0').toString().trim()) || 0,
+          image: p.image || p.Image || ''
+        }));
 
-    receivedLogins = receivedData.map(r => (r.login || r.Login || '').trim().toLowerCase());
-    populateUsers();
-  } catch (err) {
-    console.error('Ошибка при загрузке данных:', err);
-  }
-}
-
-function populateUsers() {
-  const select = document.getElementById('user');
-  select.innerHTML = '';
-  balances.forEach(u => {
-    const opt = document.createElement('option');
-    opt.value = u.login;
-    opt.textContent = u.login;
-    select.appendChild(opt);
-  });
-
-  const savedLogin = localStorage.getItem('selectedLogin');
-  if (savedLogin) select.value = savedLogin;
-
-  select.addEventListener('change', () => {
-    localStorage.setItem('selectedLogin', select.value);
-    firstBonusBlockedForUser = false; // сброс флага при смене пользователя
-    render();
-  });
-  render();
-}
-
-function render() {
-  const login = document.getElementById('user').value;
-  const balance = parseInt(balances.find(b => b.login === login)?.points || 0);
-  document.getElementById('balance').textContent = `Доступно баллов: ${balance}`;
-  const grid = document.getElementById('products');
-  grid.innerHTML = '';
-
-  products.forEach(p => {
-    const card = document.createElement('div');
-    card.className = 'card';
-
-    const isDisabled = balance < p.points;
-    const isFirstBonus = p.name === 'Первый бонус';
-
-    // блокируем кнопку "Первый бонус" если пользователь в receivedLogins или уже купил что-то
-    const disableFirstBonus = isFirstBonus && (firstBonusBlockedForUser || receivedLogins.includes(login.toLowerCase()));
-
-    card.innerHTML = `
-      <img src="${p.image}" alt="${p.name}" />
-      <h3>${p.name}</h3>
-      <p>${p.points} баллов</p>
-      <button class="btn" ${isDisabled || disableFirstBonus ? 'disabled' : ''} 
-        onclick="buy('${login}', '${p.name}', ${p.points}, this)">
-        Получить
-      </button>
-    `;
-
-    grid.appendChild(card);
-  });
-}
-
-function buy(user, item, points, btn) {
-  if (!btn.disabled) {
-    btn.disabled = true;
-    btn.style.background = '#ccc';
-    alert('Приз можно забрать у команды Research. Поздравляем! ✨');
-
-    const userBalance = balances.find(b => b.login === user);
-    if (userBalance && userBalance.points >= points) {
-      userBalance.points -= points;
-    } else {
-      alert('Недостаточно баллов');
-      return;
+        receivedLogins = receivedData.map(r => (r.login || r.Login || '').trim().toLowerCase());
+        populateUsers();
+      } catch (err) {
+        console.error('Ошибка при загрузке данных:', err);
+      }
     }
 
-    // после покупки любого призa блокируем визуально "Первый бонус"
-    firstBonusBlockedForUser = true;
-    render();
+    function populateUsers() {
+      const select = document.getElementById('user');
+      select.innerHTML = '';
+      balances.forEach(u => {
+        const opt = document.createElement('option');
+        opt.value = u.login;
+        opt.textContent = u.login;
+        select.appendChild(opt);
+      });
 
-    fetch(`${LOG_URL}?user=${encodeURIComponent(user)}&item=${encodeURIComponent(item)}&points=${points}`)
-      .catch(() => alert('Ошибка. Повторите позже.'));
-  }
-}
+      const savedLogin = localStorage.getItem('selectedLogin');
+      if (savedLogin) select.value = savedLogin;
 
-fetchData();
-</script>
+      select.addEventListener('change', () => {
+        localStorage.setItem('selectedLogin', select.value);
+        firstBonusBlockedForUser = false;
+        render();
+      });
+      render();
+    }
+
+    function render() {
+      const login = document.getElementById('user').value;
+      const balance = parseInt(balances.find(b => b.login === login)?.points || 0);
+      document.getElementById('balance').textContent = `Доступно баллов: ${balance}`;
+      const grid = document.getElementById('products');
+      grid.innerHTML = '';
+
+      products.forEach(p => {
+        const card = document.createElement('div');
+        card.className = 'card';
+
+        const isDisabled = balance < p.points;
+        const isFirstBonus = p.name === 'Первый бонус';
+        const disableFirstBonus = isFirstBonus && (firstBonusBlockedForUser || receivedLogins.includes(login.toLowerCase()));
+
+        card.innerHTML = `
+          <img src="${p.image}" alt="${p.name}" />
+          <h3>${p.name}</h3>
+          <p>${p.points} баллов</p>
+          <button class="btn" ${isDisabled || disableFirstBonus ? 'disabled' : ''} 
+            onclick="buy('${login}', '${p.name}', ${p.points}, this)">
+            Получить
+          </button>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function buy(user, item, points, btn) {
+      if (!btn.disabled) {
+        btn.disabled = true;
+        btn.style.background = '#ccc';
+        alert('Приз можно забрать у команды Research. Поздравляем! ✨');
+
+        const userBalance = balances.find(b => b.login === user);
+        if (userBalance && userBalance.points >= points) {
+          userBalance.points -= points;
+        } else {
+          alert('Недостаточно баллов');
+          return;
+        }
+
+        firstBonusBlockedForUser = true;
+        render();
+
+        fetch(`${LOG_URL}?user=${encodeURIComponent(user)}&item=${encodeURIComponent(item)}&points=${points}`)
+          .catch(() => alert('Ошибка. Повторите позже.'));
+      }
+    }
+
+    fetchData();
+  </script>
 </body>
 </html>
