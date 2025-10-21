@@ -67,60 +67,25 @@ main {
   font-size: 16px;
 }
 
-/* 🌟 Кнопка из Uiverse.io (замена старой .btn) */
-button {
-  position: relative;
-  padding: 10px 25px;
+.btn {
   background: #9a3eff;
-  font-size: 16px;
-  font-weight: 500;
-  color: #ffffff;
-  border: 3px solid #9a3eff;
-  border-radius: 50px;
-  box-shadow: 0 0 0 #7820d8;
-  transition: all 0.3s ease-in-out;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 20px;
   cursor: pointer;
-  overflow: hidden;
+  font-size: 16px;
+  transition: background 0.3s, transform 0.2s;
 }
 
-button:disabled {
+.btn:hover:not(:disabled) {
+  background: #7820d8;
+  transform: scale(1.05);
+}
+
+.btn:disabled {
   background: #ccc;
-  border-color: #ccc;
-  color: #666;
   cursor: not-allowed;
-}
-
-.star-1, .star-2, .star-3, .star-4, .star-5, .star-6 {
-  position: absolute;
-  width: 15px;
-  height: auto;
-  filter: drop-shadow(0 0 0 #7820d8);
-  z-index: -5;
-  transition: all 0.8s ease;
-}
-
-.star-1 { top: 20%; left: 20%; }
-.star-2 { top: 45%; left: 45%; }
-.star-3 { top: 40%; left: 40%; width: 5px; }
-.star-4 { top: 20%; left: 40%; width: 8px; }
-.star-5 { top: 25%; left: 45%; width: 15px; }
-.star-6 { top: 5%;  left: 50%; width: 5px; }
-
-button:hover {
-  background: transparent;
-  color: #7820d8;
-  box-shadow: 0 0 25px #7820d8;
-}
-
-button:hover .star-1 { top: -80%; left: -30%; filter: drop-shadow(0 0 10px #7820d8); z-index: 2; }
-button:hover .star-2 { top: -25%; left: 10%;  filter: drop-shadow(0 0 10px #7820d8); z-index: 2; }
-button:hover .star-3 { top: 55%;  left: 25%;  filter: drop-shadow(0 0 10px #7820d8); z-index: 2; }
-button:hover .star-4 { top: 30%;  left: 80%;  filter: drop-shadow(0 0 10px #fffdef); z-index: 2; }
-button:hover .star-5 { top: 25%;  left: 115%; filter: drop-shadow(0 0 10px #fffdef); z-index: 2; }
-button:hover .star-6 { top: 5%;   left: 60%;  filter: drop-shadow(0 0 10px #fffdef); z-index: 2; }
-
-.fil0 {
-  fill: #fffdef;
 }
 
 .footer-note {
