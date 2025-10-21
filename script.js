@@ -9,7 +9,6 @@ let products = [];
 let receivedLogins = [];
 let firstBonusBlockedForUser = false;
 
-// === Основная загрузка данных ===
 async function fetchData() {
   try {
     const [balanceResp, productResp, receivedResp] = await Promise.all([
@@ -44,7 +43,6 @@ async function fetchData() {
   }
 }
 
-// === Подставляем логины ===
 function populateUsers() {
   const select = document.getElementById('user');
   select.innerHTML = '';
@@ -66,7 +64,6 @@ function populateUsers() {
   render();
 }
 
-// === Рендер карточек ===
 function render() {
   const login = document.getElementById('user').value;
   const balance = parseInt(balances.find(b => b.login === login)?.points || 0);
@@ -82,12 +79,11 @@ function render() {
     const isFirstBonus = p.name === 'Первый бонус';
     const disableFirstBonus = isFirstBonus && (firstBonusBlockedForUser || receivedLogins.includes(login.toLowerCase()));
 
-    // заменили старую .btn на красивую кнопку из Uiverse
     card.innerHTML = `
       <img src="${p.image}" alt="${p.name}" />
       <h3>${p.name}</h3>
       <p>${p.points} баллов</p>
-      <button class="button" ${isDisabled || disableFirstBonus ? 'disabled' : ''} 
+      <button class="btn" ${isDisabled || disableFirstBonus ? 'disabled' : ''} 
         onclick="buy('${login}', '${p.name}', ${p.points}, this)">
         Получить
       </button>
@@ -96,11 +92,10 @@ function render() {
   });
 }
 
-// === Логика покупки ===
 function buy(user, item, points, btn) {
   if (!btn.disabled) {
     btn.disabled = true;
-    btn.style.opacity = '0.6';
+    btn.style.background = '#ccc';
     alert('Приз можно забрать у команды Research. Поздравляем! ✨');
 
     const userBalance = balances.find(b => b.login === user);
@@ -119,17 +114,4 @@ function buy(user, item, points, btn) {
   }
 }
 
-// === Добавлен обработчик для новой кнопки ===
-document.addEventListener("DOMContentLoaded", function () {
-  const loadButton = document.getElementById("loadButton");
-  loadButton.addEventListener("click", async () => {
-    loadButton.disabled = true;
-    loadButton.textContent = "Загружаю...";
-    try {
-      await fetchData();
-    } finally {
-      loadButton.disabled = false;
-      loadButton.textContent = "Получить список";
-    }
-  });
-});
+fetchData();
