@@ -2,7 +2,7 @@ const SHEET_ID = '1k-pn0pQsG_DASbkJngH4yrq3qwNVaeuomm1DOBldXfw';
 const BALANCE_URL = `https://opensheet.elk.sh/${SHEET_ID}/Balance`;
 const PRODUCTS_URL = `https://opensheet.elk.sh/${SHEET_ID}/Prizes`;
 const RECEIVED_BONUS_URL = `https://opensheet.elk.sh/${SHEET_ID}/Received Bonus`;
-const LOG_URL = 'https://script.google.com/macros/s/AKfycbzoLLnfmrwnVpXpVkPNLd7Hs-jKyfBudJExqW-7FCdhYtbhsfgcuPZ106Z_TIbfv4g5Zw/exec';
+const LOG_URL = 'https://script.google.com/macros/s/AKfycbxC1TSVdkky2ivsjF3HYLUTYAcLB7AX5hB6Cqnd1Hs_8EfrInnF5SncRDH-fip8FyLoAg/exec';
 
 let balances = [];
 let products = [];
